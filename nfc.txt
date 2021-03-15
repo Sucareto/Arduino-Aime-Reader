@@ -1,0 +1,244 @@
+N.B. Quoted strings are NOT NUL-terminated unless otherwise noted.
+Useful reading: https://www.nxp.com/docs/en/data-sheet/MF1S50YYX_V1.pdf
+
+(AiMe branded cards are Mifare Classic cards. Other technologies exist though)
+
+Summary
+-------
+
+Hardware:
+    Assembly connector:
+        5V Host in
+        Tx;Rx;GND Host RS232 in
+        Tx;Rx;GND Daisy-chain out
+    Main board (probably LED controller):
+        Silk "837-15084"
+        CN1: Host 5V power in, ?V NFC-sub power out
+        CN2: Host RS232 Tx;Rx;GND in, NFC-sub Tx;Rx out
+        CN3: LED-Sub power and data(?) out
+        DIPSW1: Set to hex nibble 8.
+        Contains ADM3222 RS232 transceiver IC
+        Contains ATMega32 MCU
+    NFC subboard:
+        Sticker: Model "TN32MSEC003S"
+        CN1: ?V power and Tx;Rx;GND in, Tx;Rx;GND ass'y CN daisy out.
+        DIPSW1: Set to hex nibble 0.
+        Contains ATmega168 MCU
+        Contains ADM3202A RS232 transceiver IC
+        Contains shielded RF circuit
+        Entire non-ground-plane PCB area is visible through the chassis
+        torx screws lol
+    LED subboard:
+        Silk: "837-15120"
+        CN1: ?V power and Tx;Rx;GND in.
+        Five RGB LEDs and a bunch of resistors
+        No visible logic ICs..?
+        No DIPSW.
+
+JVS framing:
+    E0 sync
+    D0 escape (+1 to unescape)
+    Checksum is sum of bytes after unescaping
+
+Frame header:
+    Frame length (including length byte itself)
+    Address
+    Sequence no, hopefully loops before hitting esc byte...
+    Command byte
+
+Bus addressing:
+    Low nibble set using DIPSWs
+    High nibble ???
+    Daisy chaining mechanism unknown (RS232 wires probably multi-tap)
+
+Startup
+-------
+
+Addr 00 Command 62:
+    Req:
+        00  Payload length
+    Resp:
+        00  Status byte
+        00  Payload length
+    Description:
+        Unknown. Reset?
+
+Addr 00 Command 30:
+    Req:
+        00  Payload length
+    Resp:
+        00  Status byte
+        17  Payload length
+        ..  "TN32MSEC003S F/W Ver1.2E"
+    Description:
+        Get firmware version
+
+Addr 00 Command 32:
+    Req:
+        00  Payload length
+    Resp:
+        00  Status byte
+        17  Payload length
+        ..  "TN32MSEC003S H/W Ver3.0J"
+    Description:
+        Get hardware version
+
+Addr 08 Command f5:
+    Req:
+        00  Payload length
+    Resp:
+        00  Status byte
+        00  Payload length
+    Description:
+        LED sub-board reset.
+        Won't accept LED commands until you do this.
+
+Addr 08 Command f0:
+    Req:
+        00  Payload length
+    Resp:
+        00  Status byte
+        09  Payload length
+        ..  "15084" (part nr for LED board)
+        FF  ??
+        11  ??
+        00  ??
+        12  ??
+    Description:
+        Get board "info"
+
+Addr 00 Command 54:
+    Req:
+        06  Payload length
+        57  'W'
+        43  'C'
+        43  'C'
+        46  'F'
+        76  'v'
+        32  '2'
+    Resp:
+        00  Status byte?
+        00  ??
+    Description:
+        Set Mifare KeyA.
+        "WCCF" might refer this this SEGA arcade game:
+        https://en.wikipedia.org/wiki/World_Club_Champion_Football
+        It's quite old and has AiMe readers, maybe where they first appeared?
+
+Addr 00 Command 50:
+    Req:
+        06  Payload length
+        60  ??
+        90  ??
+        D0  ?? (This is escaped of course)
+        06  ??
+        32  ??
+        F5  ??
+    Resp:
+        00  Status byte
+        00  Payload length
+    Description:
+        Possibly Mifare KeyB.
+
+Polling
+-------
+
+Addr 00 Command 40:
+    Req:
+        01  Payload length
+        03  ??
+    Resp:
+        00  Status byte
+        00  Payload length
+    Description:
+        Poll some other NFC technology?
+
+Addr 00 Command 42:
+    Req:
+        00  Payload length
+    Resp if no MiFare card:
+        00  Status byte
+        01  Payload length
+        00  (represents nothing i guess)
+    Resp if MiFare card:
+        00  Status byte?
+        07  Payload length
+                01  Chunk length?
+                10  ?? Block size maybe?
+                04  Chunk length?
+                ..  Mifare UID, four bytes.
+    Description:
+        Check for Mifare card presence?
+
+Addr 00 Command 41:
+    Req:
+        00  Payload length
+    Resp:
+        00  Status byte
+        00  Payload length
+    Description:
+        Unknown. Poll some other NFC technology?
+
+Card read
+---------
+
+Addr 00 Command 43:
+    Req:
+        04  Payload length
+        ..  Mifare UID, four bytes.
+    Resp:
+        00  Status byte
+        00  Payload length
+    Description:
+        Select MiFare by UID?
+
+Addr 00 Command 55:
+    Req:
+        05  Payload length
+        ..  Mifare UID, four bytes.
+        03  ??
+    Resp:
+        00  Status byte
+        00  Payload length
+    Description:
+        Unknown.
+        Block 3 on a Mifare sector contains keys and an access control list.
+        It is generally not accessed directly (unless being provisioned?)
+
+Addr 00 Command 52:
+    Req:
+        05  Payload length
+        ..  Mifare UID, four bytes.
+        ..  Block number, 1 or 2.
+    Resp for Block 1:
+        00  Status byte
+        10  Payload length (1 block)
+        ..  "SBSD"
+            00 00 00 00
+            00 00 00 00
+            00 4E C6 22
+    Resp for Block 2:
+        00  Status byte
+        10  Payload length (1 block)
+        ..  00 00 00 00 00 00 xx xx
+            xx xx xx xx xx xx xx xx
+    Description:
+        Probably reads blocks 1 and 2 from Mifare sector 0.
+        Block 0 contains the "vendor information" and UID.
+        Block 1 contents are unknown, probably AiMe DB info.
+        Block 2 last 10 bytes hex are printed on the card ("local unique id").
+        (Block 3 contains encryption keys so is not allowed to be read)
+
+LED
+---
+
+Addr 08 Command 81:
+    Req:
+        03  Payload length
+        ff  Red intensity
+        ff  Green intensity
+        ff  Blue intensity
+    Resp:
+        None! Command is not acknowledged
+    Description:
+        Set LED color
