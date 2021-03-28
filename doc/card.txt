@@ -1,4 +1,4 @@
-E0 [05] 00 [7D] [42] 00 [C4] //读卡
+E0 [05] 00 [7D] [42] 00 [C4]
 E0 [19] 00 [7D] [42] 00 13 01 20 10 [ 8 byte IDm ] [ 8 byte PMm ] [  ]
 
 
@@ -12,3 +12,47 @@ E0 [13] 00 [81] [71] 00 [0D] 0D 0D [ 8 byte IDm ] 01 00 00 [  ]
 
 E0 [18] 00 [82] [71] 13 [ 8 byte IDm ] 0B [A4] [ 8 byte IDm ] 00 [  ]
 E0 [11] 00 [82] [71] 00 [0B] 0B A5 [ 8 byte IDm ] 00 [  ]
+
+
+Felica & suica
+E0 05 00 47 42 00 8E
+E0 19 00 47 42 00 13 01 20 10 [ 8 byte IDm ] [ 8 byte PMm ] C4
+
+E0 13 00 49 71 0E [ 8 byte IDm ] 06 00 FF FF 01 0F 8E
+E0 06 00 49 71 01 00 C1
+
+E0 13 00 4A 71 0E [ 8 byte IDm ] 06 00 FF FF 01 0F 8F
+E0 1A 00 4A 71 00 14 14 01 [ 8 byte IDm ] [ 8 byte PMm ] 00 (03) DF
+
+E0 17 00 4B 71 12 [ 8 byte IDm ] 0A 0C [ 8 byte IDm ] 39
+E0 13 00 4B 71 00 0D 0D 0D 0D [ 8 byte IDm ] 01 00 (03) 99
+
+E0 18 00 4C 71 13 [ 8 byte IDm ] 0B A4 [ 8 byte IDm ] 00 D5
+E0 06 00 4C 71 01 00 C4
+
+E0 18 00 4D 71 13 [ 8 byte IDm ] 0B A4 [ 8 byte IDm ] 00 D6
+E0 06 00 4D 71 01 00 C5
+
+E0 18 00 4E 71 13 [ 8 byte IDm ] 0B A4 [ 8 byte IDm ] 00 D7
+E0 06 00 4E 71 01 00 C6
+
+E0 18 00 4F 71 13 [ 8 byte IDm ] 0B A4 [ 8 byte IDm ] 00 D8
+E0 06 00 4F 71 01 00 C7
+
+E0 18 00 50 71 13 [ 8 byte IDm ] 0B A4 [ 8 byte IDm ] 00 D9
+E0 06 00 50 71 01 00 C8
+
+E0 18 00 51 71 13 [ 8 byte IDm ] 0B A4 [ 8 byte IDm ] 00 DA
+E0 06 00 51 71 01 00 C9
+
+E0 18 00 52 71 13 [ 8 byte IDm ] 0B A4 [ 8 byte IDm ] 00 DB
+E0 06 00 52 71 01 00 CA
+
+
+
+
+
+
+
+
+
