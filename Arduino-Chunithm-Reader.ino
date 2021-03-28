@@ -23,13 +23,12 @@ void SerialCheck() {
     case SG_NFC_CMD_MIFARE_AUTHENTICATE:
       sg_res_init();
       break;
-    case SG_NFC_CMD_MIFARE_SELECT_TAG:
-      sg_res_init();
-      break;
+    //    case SG_NFC_CMD_MIFARE_SELECT_TAG:
+    //      break;
     case SG_NFC_CMD_MIFARE_SET_KEY_AIME:
       sg_nfc_cmd_mifare_set_key_aime();
       break;
-    case SG_NFC_CMD_MIFARE_SET_KEY_BANA:
+    case SG_NFC_CMD_MIFARE_SET_KEY_BANA://不处理
       sg_res_init();
       break;
     case SG_NFC_CMD_RADIO_ON:
@@ -47,6 +46,10 @@ void SerialCheck() {
     case SG_RGB_CMD_SET_COLOR:
       sg_led_cmd_set_color();
       break;
+    case 0:
+      break;
+    default:
+      sg_res_init();
   }
 }
 
@@ -55,9 +58,21 @@ void setup() {
   SerialUSB.setTimeout(0);
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
   nfc.begin();
+  if (!nfc.getFirmwareVersion()) {
+    while (1) {
+      fill_solid(leds, NUM_LEDS, 0xFF0000);
+      FastLED[0].show(leds, NUM_LEDS, BRI);
+      delay(500);
+      fill_solid(leds, NUM_LEDS, 0x000000);
+      FastLED[0].show(leds, NUM_LEDS, BRI);
+      delay(500);
+    }
+  }
   nfc.SAMConfig();
   memset(&req, 0, sizeof(req.bytes));
   memset(&res, 0, sizeof(res.bytes));
+  fill_solid(leds, NUM_LEDS, 0x0000FF);
+  FastLED[0].show(leds, NUM_LEDS, BRI);
 }
 
 void loop() {
@@ -98,22 +113,30 @@ static uint8_t packet_read() {
 }
 
 static void packet_write() {
-  if (res.cmd == 0)
+  uint8_t checksum = 0, len = 0;
+  if (res.cmd == 0) {
     return;
-  uint8_t checksum = 0;
+  }
   SerialUSB.write(0xE0);
-  for (uint8_t i = 0; i < res.frame_len; i++) {
-    uint8_t w = res.bytes[i];
-    checksum += w;
-    if (SerialUSB.availableForWrite() < 2)
-      return;
+  while (len <= res.frame_len) {
+    uint8_t w;
+    if (len == res.frame_len) {
+      w = checksum;
+    } else {
+      w = res.bytes[len];
+      checksum += w;
+    }
     if (w == 0xE0 || w == 0xD0) {
+      if (SerialUSB.availableForWrite() < 2)
+        return;
       SerialUSB.write(0xD0);
       SerialUSB.write(--w);
     } else {
+      if (SerialUSB.availableForWrite() < 1)
+        return;
       SerialUSB.write(w);
     }
+    len++;
   }
-  SerialUSB.write(checksum);
   res.cmd = 0;
 }
