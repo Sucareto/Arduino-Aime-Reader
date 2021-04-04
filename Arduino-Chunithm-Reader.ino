@@ -23,8 +23,9 @@ void SerialCheck() {
     case SG_NFC_CMD_MIFARE_AUTHENTICATE:
       sg_res_init();
       break;
-    //    case SG_NFC_CMD_MIFARE_SELECT_TAG:
-    //      break;
+    case SG_NFC_CMD_MIFARE_SELECT_TAG:
+      sg_nfc_cmd_mifare_select_tag();
+      break;
     case SG_NFC_CMD_MIFARE_SET_KEY_AIME:
       sg_nfc_cmd_mifare_set_key_aime();
       break;

@@ -7,8 +7,11 @@ CRGB leds[NUM_LEDS];
 #include "Adafruit_PN532.h"
 #define PN532_IRQ 4
 Adafruit_PN532 nfc(PN532_IRQ, 16);
+uint8_t cardtype = 0;
+uint8_t uid[4], uL;
 #define M2F_B 1 //指定从mifare读取第几block当作felica的IDm和PMm
-uint8_t AimeKey[6];
+
+uint8_t AimeKey[6] = {0x57, 0x43, 0x43, 0x46, 0x76, 0x32};
 uint8_t MifareKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 enum {
@@ -71,11 +74,12 @@ typedef union packet_res {
       char version[23];// sg_nfc_res_get_fw_version,sg_nfc_res_get_hw_version
       uint8_t reset_payload;  //sg_led_res_reset
       uint8_t info_payload[9]; //sg_led_res_get_info
+      uint8_t block[16];// sg_nfc_res_mifare_read_block
       struct {// sg_nfc_res_poll
         uint8_t count;
         uint8_t type;
         uint8_t id_len;
-        uint8_t block[16];
+        uint8_t poll[16];//aime uid or felica IDm+PMm
       };
       struct {// sg_nfc_res_felica_encap
         uint8_t encap_len;
@@ -108,9 +112,15 @@ static void sg_res_init(uint8_t payload_len = 0) { //初始化模板
 }
 
 static void sg_nfc_cmd_reset() {//重置读卡器
-  sg_res_init();
-  res.status = 3;
-  readerDisabled = true;
+  nfc.begin();
+  if (nfc.getFirmwareVersion()) {
+    nfc.SAMConfig();
+    sg_res_init();
+    res.status = 3;
+    return;
+  }
+  fill_solid(leds, NUM_LEDS, 0xFFFF00);
+  FastLED[0].show(leds, NUM_LEDS, BRI);
 }
 
 static void sg_nfc_cmd_get_fw_version() {
@@ -125,7 +135,7 @@ static void sg_nfc_cmd_get_hw_version() {
 
 static void sg_nfc_cmd_mifare_set_key_aime() { //设置aime的读取key
   sg_res_init();
-  memcpy(req.key, AimeKey, sizeof(AimeKey));
+  //  memcpy(req.key, AimeKey, sizeof(AimeKey));
 }
 
 static void sg_led_cmd_reset() {
@@ -151,54 +161,74 @@ static void sg_led_cmd_set_color() {
 
 static void sg_nfc_cmd_radio_on() {
   sg_res_init();
+  nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A);
+  delay(10);
+  if (!digitalRead(PN532_IRQ) && nfc.readDetectedPassiveTargetID(uid, &uL)) {
+    if (nfc.mifareclassic_AuthenticateBlock(uid, uL, 1, MIFARE_CMD_AUTH_B, AimeKey)) {
+      cardtype = 0x10;
+      return;
+    }
+  }
+  nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A);
+  delay(10);
+  if (!digitalRead(PN532_IRQ) && nfc.readDetectedPassiveTargetID(uid, &uL)) {
+    if (nfc.mifareclassic_AuthenticateBlock(uid, uL, M2F_B, MIFARE_CMD_AUTH_A, MifareKey)) {
+      cardtype = 0x20;
+      return;
+    }
+  }
 }
 
 static void sg_nfc_cmd_radio_off() {
+  cardtype = 0;
+  uint8_t EKey[6] = {0x11, 0x45, 0x14, 0x19, 0x19, 0x81};
+  nfc.mifareclassic_AuthenticateBlock(uid, uL, 63, MIFARE_CMD_AUTH_A, EKey);//断开卡片
   sg_res_init();
 }
 
 static void sg_nfc_cmd_poll() { //卡号发送
-  uint8_t uid[4], uL;
-  //读普通mifare当作felica
-  nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A);
-  delay(50);
-  if (!digitalRead(PN532_IRQ)) {
-    nfc.readDetectedPassiveTargetID(uid, &uL);
-    nfc.mifareclassic_AuthenticateBlock(uid, uL, M2F_B, MIFARE_CMD_AUTH_A, MifareKey);
-    if (nfc.mifareclassic_ReadDataBlock(M2F_B, res.block)) {//此处略过了IDm和PMm的分别读取
-      sg_res_init(19);//count,type,id_len,IDm,PMm
-      res.count = 1;
-      res.type = 0x20;
-      res.id_len = 0x10;
-      return;
-    }
+  if (cardtype == 0x10) {
+    res.count = 1;
+    res.type = 0x10;
+    res.id_len = uL;
+    memcpy(res.poll, uid, uL);
+    sg_res_init(7);
+    return;
+  }
+  if (cardtype == 0x20 && nfc.mifareclassic_ReadDataBlock(M2F_B, res.poll)) {
+    sg_res_init(19);//count,type,id_len,IDm,PMm
+    res.count = 1;
+    res.type = 0x20;
+    res.id_len = 0x10;
+    return;
   }
   sg_res_init(1);
   res.count = 0;
 }
 
-static void sg_nfc_cmd_mifare_read_block() {
+static void sg_nfc_cmd_mifare_select_tag() {
   sg_res_init();
 }
 
-static void sg_nfc_cmd_felica_encap() {
-  uint8_t block[16];
-  uint8_t uid[4], t;
-  nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A);
-  delay(50);
-  if (!digitalRead(PN532_IRQ)) {//检测卡
-    nfc.readDetectedPassiveTargetID(uid, &t);
-    nfc.mifareclassic_AuthenticateBlock(uid, t, M2F_B, MIFARE_CMD_AUTH_A, MifareKey);
-    nfc.mifareclassic_ReadDataBlock(M2F_B, block);
+static void sg_nfc_cmd_mifare_read_block() {//读取卡扇区数据
+  sg_res_init();
+  if (req.block_no > 2) {
+    return;
   }
-  if (memcmp(&block, &req.IDm, 8)) {//确认卡是否正确
+  if (nfc.mifareclassic_ReadDataBlock(req.block_no, res.block)) {
+    sg_res_init(0x10);
+    return;
+  }
+}
+
+static void sg_nfc_cmd_felica_encap() {
+  if (!nfc.mifareclassic_ReadDataBlock(M2F_B, res.encap_block)) {
     sg_res_init();
     res.status = 1;
     return;
   }
   uint8_t code = req.code;
   res.code = code + 1;
-  memcpy(res.encap_block, block, 16);
   switch (code) {
     case FELICA_CMD_POLL:
       sg_res_init(0x14);
@@ -212,8 +242,10 @@ static void sg_nfc_cmd_felica_encap() {
       res.felica_payload[2] = 0x00;
       break;
     case FELICA_CMD_NDA_A4:
-      sg_res_init(0x0B);
-      res.felica_payload[0] = 0x00;
+      //      sg_res_init(0x0B);
+      //      res.felica_payload[0] = 0x00;
+      sg_res_init();
+      res.status = 1;
       break;
   }
   res.encap_len = res.payload_len;
