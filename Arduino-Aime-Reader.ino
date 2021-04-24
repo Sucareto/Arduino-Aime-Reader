@@ -27,10 +27,10 @@ void SerialCheck() {
       sg_nfc_cmd_mifare_select_tag();
       break;
     case SG_NFC_CMD_MIFARE_SET_KEY_AIME:
-      sg_nfc_cmd_mifare_set_key_aime();
+      sg_nfc_cmd_mifare_set_key();
       break;
-    case SG_NFC_CMD_MIFARE_SET_KEY_BANA://不处理
-      sg_res_init();
+    case SG_NFC_CMD_MIFARE_SET_KEY_BANA:
+      sg_nfc_cmd_mifare_set_key();
       break;
     case SG_NFC_CMD_RADIO_ON:
       sg_nfc_cmd_radio_on();
@@ -47,10 +47,10 @@ void SerialCheck() {
     case SG_RGB_CMD_SET_COLOR:
       sg_led_cmd_set_color();
       break;
-    case 0:
-      break;
-    default:
-      sg_res_init();
+      //    case 0:
+      //      break;
+      //    default:
+      //      sg_res_init();
   }
 }
 
@@ -69,6 +69,7 @@ void setup() {
       delay(500);
     }
   }
+  nfc.setPassiveActivationRetries(0x10);//设定等待次数
   nfc.SAMConfig();
   memset(&req, 0, sizeof(req.bytes));
   memset(&res, 0, sizeof(res.bytes));
