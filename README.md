@@ -1,5 +1,5 @@
 # Arduino-Aime-Reader
-使用 Arduino + PN532 + WS2812B 制作的 Aime 读卡器。支持 Felica 和 Aime（Mifare 卡模拟 Felica 是可选功能）。     
+使用 Arduino + PN532 + WS2812B 制作的 Aime 读卡器。支持 Felica，Bana，Aime（Mifare 卡模拟 Felica 是可选功能）。     
 通信数据格式可参考 [card.txt](https://github.com/Sucareto/Arduino-Aime-Reader/blob/main/doc/card.txt) 和 [nfc.txt](https://github.com/Sucareto/Arduino-Aime-Reader/blob/main/doc/nfc.txt)。   
 替换 chunihook.dll 可在控制台输出通信数据，源码在 [sg-cmd.c](https://github.com/Sucareto/Arduino-Chunithm-Reader/blob/main/tools/sg-cmd.c)。   
 
