@@ -47,10 +47,10 @@ void SerialCheck() {
     case SG_RGB_CMD_SET_COLOR:
       sg_led_cmd_set_color();
       break;
-      //    case 0:
-      //      break;
-      //    default:
-      //      sg_res_init();
+    case 0:
+      break;
+    default:
+      sg_res_init();
   }
 }
 
