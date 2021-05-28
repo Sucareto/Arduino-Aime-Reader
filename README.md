@@ -11,10 +11,12 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 
 打开设备管理器，设置 Arduino 的 COM 号，一些参考如下：  
 Chunithm：COM12，支持 Felica 和 Aime；  
-Ongeki：COM1，仅支持 Aime；  
+Ongeki/Sinmai：COM1，仅支持 Aime；  
 MaiMai Finale：COM2，仅支持 Aime；  
 
 某些 Arduino 可能需要在打开主程序前给串口发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动主程序。  
+如果是 Chunithm，可以在启动前运行一次 [DTR-RTS.exe](https://github.com/Sucareto/Arduino-Aime-Reader/blob/main/tools/DTR-RTS.exe) 以向 COM1 和 COM12 发送DTR/RTS。  
+如果需要向其他端口发送，可以修改 [DTR-RTS.c](https://github.com/Sucareto/Arduino-Aime-Reader/blob/main/tools/DTR-RTS.c) 然后编译。
 
 #### 引用库：  
 [驱动WS2812B FastLED.h](https://github.com/FastLED/FastLED)    
