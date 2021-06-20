@@ -143,13 +143,15 @@ static void sg_nfc_cmd_reset() {//重置读卡器
 }
 
 static void sg_nfc_cmd_get_fw_version() {
-  sg_res_init(sizeof(res.version));
-  memcpy(res.version, "TN32MSEC003S F/W Ver1.2E", 23);
+  sg_res_init(23);
+  //  memcpy(res.version, "TN32MSEC003S F/W Ver1.2E", 23);
+  memcpy(res.version, "Sucareto Aime Reader FW", 23);
 }
 
 static void sg_nfc_cmd_get_hw_version() {
-  sg_res_init(sizeof(res.version));
-  memcpy(res.version, "TN32MSEC003S H/W Ver3.0J", 23);
+  sg_res_init(23);
+  //  memcpy(res.version, "TN32MSEC003S H/W Ver3.0J", 23);
+  memcpy(res.version, "Sucareto Aime Reader HW", 23);
 }
 
 static void sg_nfc_cmd_mifare_set_key() {
@@ -162,7 +164,7 @@ static void sg_nfc_cmd_mifare_set_key() {
 }
 
 static void sg_led_cmd_reset() {
-  sg_res_init(sizeof(res.reset_payload));
+  sg_res_init(1);
   res.reset_payload = 0;
   fill_solid(leds, NUM_LEDS, 0x000000);
   FastLED[0].show(leds, NUM_LEDS, BRI);

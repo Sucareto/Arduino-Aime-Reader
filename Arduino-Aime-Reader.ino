@@ -1,5 +1,8 @@
 #include "cmd.h"
 
+#define SerialDevice SerialUSB //32u4,samd21
+//#define SerialDevice Serial
+
 void SerialCheck() {
   switch (packet_read()) {
     case SG_NFC_CMD_RESET:
@@ -55,8 +58,9 @@ void SerialCheck() {
 }
 
 void setup() {
-  SerialUSB.begin(38400);
-  SerialUSB.setTimeout(0);
+  SerialDevice.begin(38400);
+  //  SerialUSB.begin(119200);//high_baudrate=true
+  SerialDevice.setTimeout(0);
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
   nfc.begin();
   if (!nfc.getFirmwareVersion()) {
@@ -82,13 +86,16 @@ void loop() {
   packet_write();
 }
 
+static uint8_t len, r, checksum;
+static bool escape = false;
+
 static uint8_t packet_read() {
-  uint8_t len, r, checksum;
-  bool escape = false;
-  while (SerialUSB.available()) {
-    r = SerialUSB.read();
+
+  while (SerialDevice.available()) {
+    r = SerialDevice.read();
     if (r == 0xE0) {
       req.frame_len = 0xFF;
+      len = 0;
       continue;
     }
     if (req.frame_len == 0xFF) {
@@ -119,7 +126,7 @@ static void packet_write() {
   if (res.cmd == 0) {
     return;
   }
-  SerialUSB.write(0xE0);
+  SerialDevice.write(0xE0);
   while (len <= res.frame_len) {
     uint8_t w;
     if (len == res.frame_len) {
@@ -129,14 +136,14 @@ static void packet_write() {
       checksum += w;
     }
     if (w == 0xE0 || w == 0xD0) {
-      if (SerialUSB.availableForWrite() < 2)
+      if (SerialDevice.availableForWrite() < 2)
         return;
-      SerialUSB.write(0xD0);
-      SerialUSB.write(--w);
+      SerialDevice.write(0xD0);
+      SerialDevice.write(--w);
     } else {
-      if (SerialUSB.availableForWrite() < 1)
+      if (SerialDevice.availableForWrite() < 1)
         return;
-      SerialUSB.write(w);
+      SerialDevice.write(w);
     }
     len++;
   }
