@@ -66,11 +66,6 @@ void sg_req_transact(
         sg_dispatch_fn_t dispatch,
         void *ctx)
 {
-    printf("req: ");
-    for (uint8_t i = 0; i < req_nbytes; i++)
-        printf("%02X ", req_bytes[i]);
-    printf("\n");
-
     struct iobuf req_span;
     union sg_req_any req;
     union sg_res_any res;
@@ -104,8 +99,11 @@ void sg_req_transact(
         }
 
         sg_frame_encode(res_frame, res.bytes, res.res.hdr.frame_len);
-        
-         printf("res: ");
+        printf("req: ");
+        for (uint8_t i = 0; i < req_nbytes; i++)
+            printf("%02X ", req_bytes[i]);
+        printf("\n");
+        printf("res: ");
         for (uint8_t i = 0; i < res_frame->pos; i++)
             printf("%02X ", res_frame->bytes[i]);
         printf("\n");
