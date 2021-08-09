@@ -21,7 +21,7 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 #### 已测试开发板：  
 - SparkFun Pro Micro（ATmega32U4），需要发送 DTR/RTS  
 - SparkFun SAMD21 Dev Breakout（ATSAMD21G18）  
-- NodeMCU 1.0（ESP-12E + CP2102），SDA=D2，SCL=D1  
+- NodeMCU 1.0（ESP-12E + CP2102 & CH340），SDA=D2，SCL=D1  
 
 #### 引用库：  
 - [驱动WS2812B FastLED.h](https://github.com/FastLED/FastLED)    

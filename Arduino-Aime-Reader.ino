@@ -1,7 +1,7 @@
 #include "cmd.h"
 
-#define SerialDevice SerialUSB //32u4,samd21
-//#define SerialDevice Serial
+//#define SerialDevice SerialUSB //32u4,samd21
+#define SerialDevice Serial //esp8266
 
 void SerialCheck() {
   switch (packet_read()) {
@@ -59,7 +59,7 @@ void SerialCheck() {
 
 void setup() {
   SerialDevice.begin(38400);
-  //  SerialUSB.begin(119200);//high_baudrate=true
+  //  SerialDevice.begin(119200);//high_baudrate=true
   SerialDevice.setTimeout(0);
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
   nfc.begin();

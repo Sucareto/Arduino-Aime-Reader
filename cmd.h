@@ -1,6 +1,6 @@
 #include "FastLED.h"
 #define NUM_LEDS 6
-#define DATA_PIN A3
+#define DATA_PIN D4
 #define BRI 50
 CRGB leds[NUM_LEDS];
 
