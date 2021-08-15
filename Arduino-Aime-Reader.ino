@@ -62,23 +62,22 @@ void setup() {
   //  SerialDevice.begin(119200);//high_baudrate=true
   SerialDevice.setTimeout(0);
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setBrightness(50);
   nfc.begin();
-  if (!nfc.getFirmwareVersion()) {
-    while (1) {
-      fill_solid(leds, NUM_LEDS, 0xFF0000);
-      FastLED[0].show(leds, NUM_LEDS, BRI);
-      delay(500);
-      fill_solid(leds, NUM_LEDS, 0x000000);
-      FastLED[0].show(leds, NUM_LEDS, BRI);
-      delay(500);
-    }
+  while (!nfc.getFirmwareVersion()) {
+    fill_solid(leds, NUM_LEDS, 0xFF0000);
+    FastLED.show();
+    delay(500);
+    fill_solid(leds, NUM_LEDS, 0x000000);
+    FastLED.show();
+    delay(500);
   }
   nfc.setPassiveActivationRetries(0x10);//设定等待次数
   nfc.SAMConfig();
   memset(&req, 0, sizeof(req.bytes));
   memset(&res, 0, sizeof(res.bytes));
   fill_solid(leds, NUM_LEDS, 0x0000FF);
-  FastLED[0].show(leds, NUM_LEDS, BRI);
+  FastLED.show();
 }
 
 void loop() {

@@ -1,7 +1,6 @@
 #include "FastLED.h"
 #define NUM_LEDS 6
-#define DATA_PIN D5
-#define BRI 50
+#define DATA_PIN 14
 CRGB leds[NUM_LEDS];
 
 #include <Wire.h>
@@ -139,7 +138,7 @@ static void sg_nfc_cmd_reset() {//重置读卡器
     return;
   }
   fill_solid(leds, NUM_LEDS, 0xFFFF00);
-  FastLED[0].show(leds, NUM_LEDS, BRI);
+  FastLED.show();
 }
 
 static void sg_nfc_cmd_get_fw_version() {
@@ -167,7 +166,7 @@ static void sg_led_cmd_reset() {
   sg_res_init(1);
   res.reset_payload = 0;
   fill_solid(leds, NUM_LEDS, 0x000000);
-  FastLED[0].show(leds, NUM_LEDS, BRI);
+  FastLED.show();
 }
 
 static void sg_led_cmd_get_info() {
@@ -181,7 +180,7 @@ static void sg_led_cmd_set_color() {
   uint8_t g = req.color_payload[1];
   uint8_t b = req.color_payload[2];
   fill_solid(leds, NUM_LEDS, CRGB(r, g, b));
-  FastLED[0].show(leds, NUM_LEDS, BRI);
+  FastLED.show();
 }
 
 static void sg_nfc_cmd_radio_on() {
