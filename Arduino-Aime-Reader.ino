@@ -59,7 +59,7 @@ void SerialCheck() {
 
 void setup() {
   SerialDevice.begin(38400);
-  //  SerialDevice.begin(119200);//high_baudrate=true
+  //  SerialDevice.begin(115200);//high_baudrate=true
   SerialDevice.setTimeout(0);
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(50);
