@@ -1,6 +1,6 @@
 #include "FastLED.h"
 #define NUM_LEDS 6
-#define DATA_PIN 14
+#define DATA_PIN D5//14
 CRGB leds[NUM_LEDS];
 
 #include <Wire.h>
@@ -13,18 +13,16 @@ PN532 nfc(pn532i2c);
 uint8_t cardtype, uid[4], uL;
 uint16_t systemCode = 0xFFFF;
 uint8_t requestCode = 0x01;
-uint16_t systemCodeResponse;
 typedef union {
-  uint8_t block[16];
+  uint8_t block[18];
   struct {
     uint8_t IDm[8];
     uint8_t PMm[8];
+    uint16_t SystemCode;
   };
 } Felica;
 Felica felica;
 uint8_t AimeKey[6], BanaKey[6];
-
-#define M2F //取消注释此行，将默认密钥的mifare模拟为felica
 
 #ifdef M2F
 #define M2F_B 1 //指定从mifare读取第几block当作felica的IDm和PMm
@@ -32,24 +30,30 @@ uint8_t MifareKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 #endif
 
 enum {
-  SG_NFC_CMD_GET_FW_VERSION = 0x30,//获取FW版本
-  SG_NFC_CMD_GET_HW_VERSION = 0x32,//获取HW版本
-  SG_NFC_CMD_RADIO_ON = 0x40,
-  SG_NFC_CMD_RADIO_OFF = 0x41,
-  SG_NFC_CMD_POLL = 0x42,//发送卡号
-  SG_NFC_CMD_MIFARE_SELECT_TAG = 0x43,
-  SG_NFC_CMD_MIFARE_SET_KEY_BANA = 0x50,
-  SG_NFC_CMD_MIFARE_READ_BLOCK = 0x52,
-  SG_NFC_CMD_MIFARE_SET_KEY_AIME = 0x54,
-  SG_NFC_CMD_MIFARE_AUTHENTICATE = 0x55, /* guess based on time sent */
-  SG_NFC_CMD_RESET = 0x62,//重置读卡器
-  SG_NFC_CMD_FELICA_ENCAP = 0x71,
-  SG_RGB_CMD_SET_COLOR = 0x81,//LED颜色设置
-  SG_RGB_CMD_RESET = 0xF5,//LED重置
-  SG_RGB_CMD_GET_INFO = 0xF0,//LED信息获取
-  FELICA_CMD_POLL             = 0x00,//ENCAP用
-  FELICA_CMD_GET_SYSTEM_CODE  = 0x0C,
-  FELICA_CMD_NDA_A4           = 0xA4,
+  SG_NFC_CMD_GET_FW_VERSION       = 0x30,//获取 FW 版本
+  SG_NFC_CMD_GET_HW_VERSION       = 0x32,//获取 HW 版本
+  SG_RGB_CMD_GET_INFO             = 0xF0,//获取 LED 信息
+
+  SG_NFC_CMD_RESET                = 0x62,//重置读卡器
+  SG_RGB_CMD_SET_COLOR            = 0x81,//LED 颜色设置
+  SG_RGB_CMD_RESET                = 0xF5,//LED 重置
+  SG_NFC_CMD_RADIO_ON             = 0x40,//打开读卡器
+  SG_NFC_CMD_RADIO_OFF            = 0x41,//关闭读卡器
+  SG_NFC_CMD_POLL                 = 0x42,//发送卡号
+
+  SG_NFC_CMD_MIFARE_SELECT_TAG    = 0x43,
+  SG_NFC_CMD_MIFARE_SET_KEY_BANA  = 0x50,
+  SG_NFC_CMD_MIFARE_SET_KEY_AIME  = 0x54,
+  SG_NFC_CMD_MIFARE_READ_BLOCK    = 0x52,
+  SG_NFC_CMD_MIFARE_AUTHENTICATE  = 0x55,
+  SG_NFC_CMD_FELICA_ENCAP         = 0x71,
+
+  //FELICA_ENCAP
+  FELICA_CMD_POLL                 = 0x00,
+  FELICA_CMD_GET_SYSTEM_CODE      = 0x0C,
+  FELICA_CMD_NDA_A4               = 0xA4,
+  FELICA_CMD_NDA_06               = 0x06,//测试中，作用未知
+  FELICA_CMD_NDA_08               = 0x08,//测试中，作用未知
 };
 
 typedef union packet_req {
@@ -104,9 +108,14 @@ typedef union packet_res {
         uint8_t code;
         uint8_t encap_IDm[8];
         union {
-          struct {
+          struct {//FELICA_CMD_POLL
             uint8_t encap_PMm[8];
             uint8_t system_code[2];
+          };
+          struct {//NDA06
+            uint8_t NDA06_code[3];
+            uint8_t NDA06_IDm[8];
+            uint8_t NDA06_Data[8];
           };
           uint8_t felica_payload[241];
         };
@@ -143,13 +152,13 @@ static void sg_nfc_cmd_reset() {//重置读卡器
 
 static void sg_nfc_cmd_get_fw_version() {
   sg_res_init(23);
-  //  memcpy(res.version, "TN32MSEC003S F/W Ver1.2E", 23);
+  //  memcpy(res.version, "TN32MSEC003S F/W Ver1.2", 23);
   memcpy(res.version, "Sucareto Aime Reader FW", 23);
 }
 
 static void sg_nfc_cmd_get_hw_version() {
   sg_res_init(23);
-  //  memcpy(res.version, "TN32MSEC003S H/W Ver3.0J", 23);
+  //  memcpy(res.version, "TN32MSEC003S H/W Ver3.0", 23);
   memcpy(res.version, "Sucareto Aime Reader HW", 23);
 }
 
@@ -163,9 +172,8 @@ static void sg_nfc_cmd_mifare_set_key() {
 }
 
 static void sg_led_cmd_reset() {
-  sg_res_init(1);
-  res.reset_payload = 0;
-  fill_solid(leds, NUM_LEDS, 0x000000);
+  sg_res_init();
+  FastLED.clear();
   FastLED.show();
 }
 
@@ -198,7 +206,7 @@ static void sg_nfc_cmd_radio_on() {
     cardtype = 0x10;
     return;
   }
-  if (nfc.felica_Polling(systemCode, requestCode, felica.IDm, felica.PMm, &systemCodeResponse, 200)) {
+  if (nfc.felica_Polling(systemCode, requestCode, felica.IDm, felica.PMm, &felica.SystemCode, 200)) {
     cardtype = 0x20;
     return;
   }
@@ -224,7 +232,7 @@ static void sg_nfc_cmd_poll() { //卡号发送
     return;
   }
   if (cardtype == 0x20) {
-    sg_res_init(19);//count,type,id_len,IDm,PMm
+    sg_res_init(19);
     memcpy(res.IDm, felica.IDm, 8);
     memcpy(res.PMm, felica.PMm, 8);
     res.count = 1;
@@ -234,10 +242,12 @@ static void sg_nfc_cmd_poll() { //卡号发送
   }
 #ifdef M2F
   if (cardtype == 0x30) {
-    sg_res_init(19);//count,type,id_len,IDm,PMm
+    sg_res_init(19);
     nfc.mifareclassic_ReadDataBlock(M2F_B, felica.block);
     memcpy(res.IDm, felica.IDm, 8);
     memcpy(res.PMm, felica.PMm, 8);
+    felica.block[16] = 0x00;
+    felica.block[17] = 0x03;//suica
     res.count = 1;
     res.type = 0x20;
     res.id_len = 0x10;
@@ -275,22 +285,37 @@ static void sg_nfc_cmd_felica_encap() {
       sg_res_init(0x14);
       memcpy(res.encap_IDm, felica.IDm, 8);
       memcpy(res.encap_PMm, felica.PMm, 8);
-      res.system_code[0] = 0x00;
-      res.system_code[1] = 0x00;
+      memcpy(res.system_code, &felica.SystemCode, 2);
       break;
     case FELICA_CMD_GET_SYSTEM_CODE:
       sg_res_init(0x0D);
       memcpy(res.IDm, felica.IDm, 8);
-      res.felica_payload[0] = 0x01;
-      res.felica_payload[1] = 0x00;
-      res.felica_payload[2] = 0x00;//0x03
+      res.felica_payload[0] = 0x01;//未知
+      res.felica_payload[1] = felica.block[16];//SystemCode
+      res.felica_payload[2] = felica.block[17];
       break;
-    case FELICA_CMD_NDA_A4://pass
-      //      sg_res_init(0x0B);
-      //      res.felica_payload[0] = 0x00;
+    case FELICA_CMD_NDA_A4:
+      sg_res_init(0x0B);
+      res.felica_payload[0] = 0x00;
+      break;
+    case FELICA_CMD_NDA_06:
+      sg_res_init(0x1D);
+      memcpy(res.encap_IDm, felica.IDm, 8);
+      res.NDA06_code[0] = 0x00;
+      res.NDA06_code[1] = 0x00;
+      res.NDA06_code[2] = 0x01;//未知
+      memcpy(res.NDA06_IDm, felica.IDm, 8);
+      memcpy(res.NDA06_Data, felica.PMm, 8);//填补数据用
+      break;
+    case FELICA_CMD_NDA_08:
+      sg_res_init(0x0C);
+      memcpy(res.encap_IDm, felica.IDm, 8);
+      res.felica_payload[0] = 0x00;
+      res.felica_payload[1] = 0x00;
+      break;
+    default:
       sg_res_init();
       res.status = 1;
-      break;
   }
   res.encap_len = res.payload_len;
 }

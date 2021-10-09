@@ -1,5 +1,5 @@
 # Arduino-Aime-Reader
-使用 Arduino + PN532 + WS2812B 制作的 Aime 读卡器。支持 Felica，Bana，Aime（Mifare 卡模拟 Felica 是可选功能）。     
+使用 Arduino + PN532 + WS2812B 制作的 Aime 读卡器。支持 Felica，banapassport，Aime（Mifare 卡模拟 Felica 是可选功能）。     
 通信数据格式可参考 [card.txt](https://github.com/Sucareto/Arduino-Aime-Reader/blob/main/doc/card.txt) 和 [nfc.txt](https://github.com/Sucareto/Arduino-Aime-Reader/blob/main/doc/nfc.txt)。   
 替换 chunihook.dll 可在控制台输出通信数据，源码在 [sg-cmd.c](https://github.com/Sucareto/Arduino-Chunithm-Reader/blob/main/tools/sg-cmd.c)。   
 
@@ -11,7 +11,7 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 
 打开设备管理器，设置 Arduino 的 COM 号，一些参考如下：  
 - Chunithm：COM12，支持读取 Felica 和 Aime  
-- Ongeki/Sinmai：COM1，仅支持读取 Aime  
+- Ongeki/Sinmai：COM1，支持读取 Felica 和 Aime  
 - MaiMai Finale：COM2，仅支持读取 Aime  
 
 某些 Arduino 可能需要在打开主程序前给串口发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动主程序。  
@@ -22,6 +22,11 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 - SparkFun Pro Micro（ATmega32U4），需要发送 DTR/RTS  
 - SparkFun SAMD21 Dev Breakout（ATSAMD21G18）  
 - NodeMCU 1.0（ESP-12E + CP2102 & CH340），SDA=D2，SCL=D1  
+
+#### 待办事项：  
+- [ ] 确认 Ongeki 读取 Felica 情况
+- [ ] 收集 banapassport 卡结构和读取数据
+- [ ] 确认 NDA_06 和 NDA_08 数据结构
 
 #### 引用库：  
 - [驱动WS2812B FastLED.h](https://github.com/FastLED/FastLED)    
