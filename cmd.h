@@ -228,11 +228,11 @@ static void sg_nfc_cmd_poll() { //卡号发送
     res.type = 0x10;
     res.id_len = uL;
     memcpy(res.IDm, uid, uL);
-    sg_res_init(7);
+    sg_res_init(0x07);
     return;
   }
   if (cardtype == 0x20) {
-    sg_res_init(19);
+    sg_res_init(0x13);
     memcpy(res.IDm, felica.IDm, 8);
     memcpy(res.PMm, felica.PMm, 8);
     res.count = 1;
@@ -242,7 +242,7 @@ static void sg_nfc_cmd_poll() { //卡号发送
   }
 #ifdef M2F
   if (cardtype == 0x30) {
-    sg_res_init(19);
+    sg_res_init(0x13);
     nfc.mifareclassic_ReadDataBlock(M2F_B, felica.block);
     memcpy(res.IDm, felica.IDm, 8);
     memcpy(res.PMm, felica.PMm, 8);
