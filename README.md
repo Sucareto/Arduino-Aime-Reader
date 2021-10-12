@@ -12,9 +12,8 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 打开设备管理器，设置 Arduino 的 COM 号，一些参考如下：  
 - SDBT：COM12，支持读取 Felica 和 Aime  
 - SDDT/SDEZ：COM1，支持读取 Felica 和 Aime  
-- SBTY：COM10，支持读取 Felica 和 Aime  
+- SVZV/SDDF：COM10，支持读取 Felica 和 Aime  
 - SDEY：COM2，仅支持读取 Aime  
-- SDDF：未知  
 
 某些 Arduino 可能需要在打开主程序前给串口发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动主程序。  
 如果是 Chunithm，可以在启动前运行一次 [DTR-RTS.exe](tools/DTR-RTS.exe) 以向 COM1 和 COM12 发送DTR/RTS。  
@@ -26,7 +25,7 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 - NodeMCU 1.0（ESP-12E + CP2102 & CH340），SDA=D2，SCL=D1  
 
 #### 待办事项：  
-- [ ] 确认 SDDT 和 SDDF 读取 Felica 情况
+- [X] 确认 SDDT 和 SDDF 读取 Felica 情况
 - [ ] 收集 banapassport 卡结构和读取数据
 - [ ] 确认 NDA_06 和 NDA_08 数据结构
 
