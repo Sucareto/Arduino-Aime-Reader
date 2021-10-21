@@ -7,7 +7,7 @@
 按照 [PN532](https://github.com/elechouse/PN532) 的提示安装库；
 Arduino 和 PN532 接好 VCC，GND，SDA，SCL；  
 接上 WS2812B 灯条（可选）；  
-上传 [ReaderTest](tools/ReaderTest.ino) 测试硬件是否工作正常；
+上传 [ReaderTest](tools/ReaderTest.ino) 测试硬件是否工作正常；  
 上传程序。  
 
 打开设备管理器，设置 Arduino 的 COM 号，一些参考如下：  
