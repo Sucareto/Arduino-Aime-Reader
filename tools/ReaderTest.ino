@@ -2,8 +2,20 @@
 #include <PN532_I2C.h>
 #include <PN532.h>
 
-//#define SerialDevice SerialUSB //32u4,samd21
-#define SerialDevice Serial //esp8266
+#if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
+#pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
+#define SerialDevice SerialUSB
+#define DATA_PIN A3
+
+#elif defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+#pragma message "当前的开发板是 NODEMCU_ESP12E"
+#define SerialDevice Serial
+#define DATA_PIN D5
+
+#else
+#error "未经测试的开发板，请检查串口和阵脚定义"
+#endif
+
 
 PN532_I2C pn532i2c(Wire);
 PN532 nfc(pn532i2c);
@@ -46,7 +58,8 @@ void loop() {
   delay(2000);
 
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) && nfc.mifareclassic_AuthenticateBlock(uid, uL, 1, 1, AimeKey)) {
-    SerialDevice.print("Aime card!UID Value:");
+    SerialDevice.println("Aime card!");
+    SerialDevice.print("UID Value:");
     nfc.PrintHex(uid, uL);
     SerialDevice.print("Block 2 Data:");
     if (nfc.mifareclassic_ReadDataBlock(2, card.block)) {
@@ -55,7 +68,8 @@ void loop() {
     return;
   }
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) && nfc.mifareclassic_AuthenticateBlock(uid, uL, 1, 0, BanaKey)) {
-    SerialDevice.println("Banapassport card!UID Value:");
+    SerialDevice.println("Banapassport card!");
+    SerialDevice.print("UID Value:");
     nfc.PrintHex(uid, uL);
     SerialDevice.print("Block 2 Data:");
     if (nfc.mifareclassic_ReadDataBlock(2, card.block)) {
@@ -66,7 +80,7 @@ void loop() {
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) && nfc.mifareclassic_AuthenticateBlock(uid, uL, M2F_B, 0, MifareKey)) {
     SerialDevice.println("Default Key Mifare!");
     if (nfc.mifareclassic_ReadDataBlock(2, card.block)) {
-      SerialDevice.print(" Fake IDm:");
+      SerialDevice.print("Fake IDm:");
       nfc.PrintHex(card.IDm, 8);
       SerialDevice.print("Fake PMm:");
       nfc.PrintHex(card.PMm, 8);
@@ -74,7 +88,8 @@ void loop() {
     return;
   }
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL)) {
-    SerialDevice.println("Unknown key Mifare.UID Value:");
+    SerialDevice.println("Unknown key Mifare.");
+    SerialDevice.print("UID Value:");
     nfc.PrintHex(uid, uL);
     return;
   }
@@ -86,6 +101,7 @@ void loop() {
     SerialDevice.print("PMm:");
     nfc.PrintHex(card.PMm, 8);
     SerialDevice.print("SystemCode:");
+    card.SystemCode = card.SystemCode >> 8 | card.SystemCode << 8;
     nfc.PrintHex(card.System_Code, 2);
     return;
   }

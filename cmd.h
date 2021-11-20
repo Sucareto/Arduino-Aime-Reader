@@ -1,6 +1,5 @@
 #include "FastLED.h"
 #define NUM_LEDS 6
-#define DATA_PIN D5//14
 CRGB leds[NUM_LEDS];
 
 #include <Wire.h>
@@ -208,6 +207,7 @@ static void sg_nfc_cmd_radio_on() {
   }
   if (nfc.felica_Polling(systemCode, requestCode, felica.IDm, felica.PMm, &felica.SystemCode, 200)) {
     cardtype = 0x20;
+    felica.SystemCode = felica.SystemCode >> 8 | felica.SystemCode << 8;
     return;
   }
 #ifdef M2F

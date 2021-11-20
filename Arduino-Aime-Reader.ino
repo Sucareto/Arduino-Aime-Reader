@@ -1,5 +1,17 @@
-//#define SerialDevice SerialUSB //32u4,samd21
-#define SerialDevice Serial //esp8266
+#if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
+#pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
+#define SerialDevice SerialUSB
+#define DATA_PIN A3
+
+#elif defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+#pragma message "当前的开发板是 NODEMCU_ESP12E"
+#define SerialDevice Serial
+#define DATA_PIN D5
+
+#else
+#error "未经测试的开发板，请检查串口和阵脚定义"
+#endif
+
 //#define high_baudrate
 #define M2F //取消注释此行，将默认密钥的mifare模拟为felica
 #include "cmd.h"
