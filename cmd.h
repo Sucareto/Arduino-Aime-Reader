@@ -245,9 +245,11 @@ static void sg_nfc_cmd_poll() { //卡号发送
     sg_res_init(0x13);
     nfc.mifareclassic_ReadDataBlock(M2F_B, felica.block);
     memcpy(res.IDm, felica.IDm, 8);
+    uint8_t aic_PMm[8] = {0x00, 0xF1, 0x00, 0x00, 0x00, 0x01, 0x43, 0x00};
+    memcpy(felica.PMm, aic_PMm, 8);
     memcpy(res.PMm, felica.PMm, 8);
-    felica.block[16] = 0x00;
-    felica.block[17] = 0x03;//suica
+    felica.block[16] = 0x88;
+    felica.block[17] = 0xB4;//Amusement IC
     res.count = 1;
     res.type = 0x20;
     res.id_len = 0x10;
