@@ -15,9 +15,12 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 - SDDT/SDEZ：COM1，支持读取 Felica 和 Aime  
 - SBZV/SDDF：COM10，支持读取 Felica 和 Aime  
 - SDEY：COM2，仅支持读取 Aime  
+- SDHD：COM4，支持读取 Felica 和 Aime  
 
-某些 Arduino 可能需要在打开主程序前给串口发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动主程序。  
-如果是 Chunithm，可以在启动前运行一次 [DTR-RTS.exe](tools/DTR-RTS.exe) 以向 COM1 和 COM12 发送DTR/RTS。  
+有使用 amdaemon 的，可以参考 config_common.json 内 aime > unit > port,high_baudrate 来确定 COM 号和波特率。  
+
+某些 Arduino 可能需要在游戏主程序连接前给串口发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动主程序。  
+如果是 SDBT，可以在启动前运行一次 [DTR-RTS.exe](tools/DTR-RTS.exe) 以向 COM1 和 COM12 发送DTR/RTS。  
 如果需要向其他端口发送，可以修改 [DTR-RTS.c](tools/DTR-RTS.c) 然后编译。
 
 #### 已测试开发板：  
@@ -27,7 +30,7 @@ Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 
 #### 待办事项：  
 - [X] 确认 SDDT 和 SDDF 读取 Felica 情况
-- [ ] 收集 banapassport 卡结构和读取数据
+- [X] 收集 banapassport 卡结构和读取数据
 - [ ] 确认 NDA_06 和 NDA_08 数据结构
 
 #### 引用库：  
