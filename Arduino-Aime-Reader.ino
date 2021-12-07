@@ -58,12 +58,11 @@ static uint8_t packet_read() {
     r = SerialDevice.read();
     if (r == 0xE0) {
       req.frame_len = 0xFF;
-      len = 0;
       continue;
     }
     if (req.frame_len == 0xFF) {
       req.frame_len = r;
-      len = 1;
+      len = 0;
       checksum = r;
       continue;
     }
@@ -75,10 +74,10 @@ static uint8_t packet_read() {
       r++;
       escape = false;
     }
+    req.bytes[++len] = r;
     if (len == req.frame_len && checksum == r) {
       return req.cmd;
     }
-    req.bytes[len++] = r;
     checksum += r;
   }
   return 0;
