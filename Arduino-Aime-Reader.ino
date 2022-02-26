@@ -12,13 +12,12 @@
 #error "未经测试的开发板，请检查串口和阵脚定义"
 #endif
 
-//#define high_baudrate
-#define M2F //取消注释此行，将默认密钥的mifare模拟为felica
+//#define high_baudrate//high_baudrate=true
 #include "cmd.h"
 
 void setup() {
 #ifdef high_baudrate
-  SerialDevice.begin(115200);//high_baudrate=true
+  SerialDevice.begin(115200);
 #else
   SerialDevice.begin(38400);
 #endif
@@ -129,7 +128,7 @@ void SerialCheck() {
       sg_nfc_cmd_felica_encap();
       break;
     case SG_NFC_CMD_MIFARE_AUTHENTICATE:
-      sg_res_init();
+      sg_nfc_cmd_mifare_authenticate();
       break;
     case SG_NFC_CMD_MIFARE_SELECT_TAG:
       sg_nfc_cmd_mifare_select_tag();
