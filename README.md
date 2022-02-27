@@ -4,7 +4,7 @@
 通信数据格式参考了 [Segatools]() 和实体读卡器抓包数据，可在 [Example.txt](doc/Example.txt) 和 [nfc.txt](doc/nfc.txt) 查看。   
 
 
-#### 使用方法：
+### 使用方法：
 1. 按照 [PN532](https://github.com/elechouse/PN532) 的提示安装库；
 2. Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 3. PN532 的拨码开关按照 PCB 上丝印的指示，调整到 I2C 模式；
@@ -17,7 +17,7 @@
 如果需要向其他端口发送，可以修改 [DTR-RTS.c](tools/DTR-RTS.c) 然后编译。
 
 
-#### 支持列表：
+### 支持列表：
 - SDBT：COM12，支持读取 Felica 和 Aime
 - SDDT/SDEZ：COM1，支持读取 Felica 和 Aime
 - SBZV/SDDF：COM10，支持读取 Felica 和 Aime
@@ -27,18 +27,18 @@
 有使用 amdaemon 的，可以参考 config_common.json 内 aime > unit > port,high_baudrate 来确定 COM 号和波特率。  
 
 
-#### 已测试开发板：
+### 已测试开发板：
 - SparkFun Pro Micro（ATmega32U4），需要发送 DTR/RTS
 - SparkFun SAMD21 Dev Breakout（ATSAMD21G18）
 - NodeMCU 1.0（ESP-12E + CP2102 & CH340），SDA=D2，SCL=D1
 
 
-#### 已知问题：
+### 已知问题：
 - Felica 在非 amdaemon 游戏可能无法正常工作，因为 NDA_06 未正确回复
 - banapassport 卡可能无法正常读取，因为没有数据参考
 - 未确定`res.status`的意义，因此`res.status = 1;`可能是错误的
-- 
+- 因为`get_fw`和`get_hw`返回的是自定义版本号，启动时可能触发 amdaemon 的固件升级，可以将 aime_firm 文件夹重命名或删除
 
-#### 引用库：  
+### 引用库：  
 - [驱动WS2812B FastLED.h](https://github.com/FastLED/FastLED)
 - [驱动PN532 PN532.h](https://github.com/elechouse/PN532)
