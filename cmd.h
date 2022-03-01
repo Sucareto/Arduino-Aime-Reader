@@ -9,29 +9,27 @@ CRGB leds[NUM_LEDS];
 PN532_I2C pn532i2c(Wire);
 PN532 nfc(pn532i2c);
 
-uint8_t AimeKey[6], BanaKey[6];
+uint8_t AimeKey[6];
 
 enum {
-  SG_NFC_CMD_GET_FW_VERSION       = 0x30,//获取 FW 版本
-  SG_NFC_CMD_GET_HW_VERSION       = 0x32,//获取 HW 版本
-  SG_RGB_CMD_GET_INFO             = 0xF0,//获取 LED 信息
-
-  SG_NFC_CMD_RESET                = 0x62,//重置读卡器
-  SG_RGB_CMD_SET_COLOR            = 0x81,//LED 颜色设置
-  SG_RGB_CMD_RESET                = 0xF5,//LED 重置
-  SG_NFC_CMD_RADIO_ON             = 0x40,//打开读卡器
-  SG_NFC_CMD_RADIO_OFF            = 0x41,//关闭读卡器
-  SG_NFC_CMD_POLL                 = 0x42,//发送卡号
-  SG_NFC_CMD_UNKNOW0              = 0x60, /* maybe some stuff about AimePay*/
-  SG_NFC_CMD_UNKNOW1              = 0x61,
-
+  SG_NFC_CMD_GET_FW_VERSION       = 0x30,
+  SG_NFC_CMD_GET_HW_VERSION       = 0x32,
+  SG_NFC_CMD_RADIO_ON             = 0x40,
+  SG_NFC_CMD_RADIO_OFF            = 0x41,
+  SG_NFC_CMD_POLL                 = 0x42,
   SG_NFC_CMD_MIFARE_SELECT_TAG    = 0x43,
   SG_NFC_CMD_MIFARE_SET_KEY_BANA  = 0x50,
-  SG_NFC_CMD_MIFARE_SET_KEY_AIME  = 0x54,
-  SG_NFC_CMD_MIFARE_READ_BLOCK    = 0x52,
   SG_NFC_CMD_BANA_AUTHENTICATE    = 0x51,
+  SG_NFC_CMD_MIFARE_READ_BLOCK    = 0x52,
+  SG_NFC_CMD_MIFARE_SET_KEY_AIME  = 0x54,
   SG_NFC_CMD_MIFARE_AUTHENTICATE  = 0x55,
+  SG_NFC_CMD_UNKNOW0              = 0x60, /* maybe some stuff about AimePay*/
+  SG_NFC_CMD_UNKNOW1              = 0x61,
+  SG_NFC_CMD_RESET                = 0x62,
   SG_NFC_CMD_FELICA_ENCAP         = 0x71,
+  SG_RGB_CMD_SET_COLOR            = 0x81,
+  SG_RGB_CMD_GET_INFO             = 0xF0,
+  SG_RGB_CMD_RESET                = 0xF5,
 
   //FELICA_ENCAP
   FELICA_CMD_POLL                 = 0x00,
@@ -156,13 +154,9 @@ static void sg_nfc_cmd_get_hw_version() {
   //  memcpy(res.version, "837-15396", 9);
 }
 
-static void sg_nfc_cmd_mifare_set_key() {
+static void sg_nfc_cmd_mifare_set_key_aime() {
   sg_res_init();
-  if (req.cmd == SG_NFC_CMD_MIFARE_SET_KEY_BANA) {
-    memcpy(BanaKey, req.key, 6);
-  } else if (req.cmd == SG_NFC_CMD_MIFARE_SET_KEY_AIME) {
-    memcpy(AimeKey, req.key, 6);
-  }
+  memcpy(AimeKey, req.key, 6);
 }
 
 static void sg_led_cmd_reset() {
@@ -223,17 +217,7 @@ static void sg_nfc_cmd_mifare_select_tag() {
 static void sg_nfc_cmd_mifare_authenticate() {
   sg_res_init();
   //AuthenticateBlock(uid,uidLen,block,keyType(A=0,B=1),keyData)
-  //密钥验证失败后，无法再次验证，需要重新读卡
-  uint8_t uid[4], uL;
-  if (
-    nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) && //不需要返回uid
-    nfc.mifareclassic_AuthenticateBlock(req.uid, 4, req.block_no, 1, AimeKey)
-  ) {
-    return;
-  } else if (
-    nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) &&
-    nfc.mifareclassic_AuthenticateBlock(req.uid, 4, req.block_no, 0, BanaKey)
-  ) {
+  if (nfc.mifareclassic_AuthenticateBlock(req.uid, 4, req.block_no, 1, AimeKey)) {
     return;
   } else {
     res.status = 1;

@@ -12,7 +12,7 @@
 #error "未经测试的开发板，请检查串口和阵脚定义"
 #endif
 
-//#define high_baudrate//high_baudrate=true
+#define high_baudrate//high_baudrate=true
 #include "cmd.h"
 
 void setup() {
@@ -134,10 +134,10 @@ void SerialCheck() {
       sg_nfc_cmd_mifare_select_tag();
       break;
     case SG_NFC_CMD_MIFARE_SET_KEY_AIME:
-      sg_nfc_cmd_mifare_set_key();
+      sg_nfc_cmd_mifare_set_key_aime();
       break;
     case SG_NFC_CMD_MIFARE_SET_KEY_BANA:
-      sg_nfc_cmd_mifare_set_key();
+      sg_res_init();
       break;
     case SG_NFC_CMD_RADIO_ON:
       sg_nfc_cmd_radio_on();
