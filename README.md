@@ -39,6 +39,7 @@
 - banapassport 卡因为没有数据参考，所以没有支持
 - 未确定`res.status`的意义，因此`res.status = 1;`可能是错误的
 - 因为`get_fw`和`get_hw`返回的是自定义版本号，启动时可能触发 amdaemon 的固件升级，可以将 aime_firm 文件夹重命名或删除
+- 未实现`mifare_select_tag`，未支持多卡选择，只会读到最先识别的卡片
 
 
 ### 引用库：  

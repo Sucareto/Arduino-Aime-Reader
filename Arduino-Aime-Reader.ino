@@ -1,12 +1,17 @@
 #if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
 #pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
 #define SerialDevice SerialUSB
-#define DATA_PIN A3
+#define LED_PIN A3
 
 #elif defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
 #pragma message "当前的开发板是 NODEMCU_ESP12E"
 #define SerialDevice Serial
-#define DATA_PIN D5
+#define LED_PIN D5
+
+#elif defined(ARDUINO_NodeMCU_32S)
+#pragma message "当前的开发板是 NodeMCU_32S"
+#define SerialDevice Serial
+#define LED_PIN 13
 
 #else
 #error "未经测试的开发板，请检查串口和阵脚定义"
@@ -22,7 +27,7 @@ void setup() {
   SerialDevice.begin(38400);
 #endif
   SerialDevice.setTimeout(0);
-  FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(50);
   FastLED.clear();
   FastLED.show();

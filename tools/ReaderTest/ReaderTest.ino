@@ -5,12 +5,14 @@
 #if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
 #pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
 #define SerialDevice SerialUSB
-#define DATA_PIN A3
 
 #elif defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
 #pragma message "当前的开发板是 NODEMCU_ESP12E"
 #define SerialDevice Serial
-#define DATA_PIN D5
+
+#elif defined(ARDUINO_NodeMCU_32S)
+#pragma message "当前的开发板是 NodeMCU_32S"
+#define SerialDevice Serial
 
 #else
 #error "未经测试的开发板，请检查串口和阵脚定义"
@@ -20,8 +22,6 @@
 PN532_I2C pn532i2c(Wire);
 PN532 nfc(pn532i2c);
 
-uint16_t systemCode = 0xFFFF;
-uint8_t requestCode = 0x01;
 typedef union {
   uint8_t block[18];
   struct {
@@ -94,7 +94,7 @@ void loop() {
     return;
   }
 
-  if (nfc.felica_Polling(systemCode, requestCode, card.IDm, card.PMm, &card.SystemCode, 200)) {
+  if (nfc.felica_Polling(0xFFFF, 0x01, card.IDm, card.PMm, &card.SystemCode, 200)) {
     SerialDevice.println("Felica card!");
     SerialDevice.print("IDm:");
     nfc.PrintHex(card.IDm, 8);
