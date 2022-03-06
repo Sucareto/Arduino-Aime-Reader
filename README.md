@@ -9,7 +9,7 @@
 2. Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
 3. PN532 的拨码开关按照 PCB 上丝印的指示，调整到 I2C 模式；
 4. 接上 WS2812B 灯条（可选）；
-5. 上传 [ReaderTest](tools/ReaderTest.ino) 测试硬件是否工作正常；
+5. 上传 [ReaderTest](tools/ReaderTest/ReaderTest.ino) 测试硬件是否工作正常；
 6. 若读卡正常，可按照支持列表打开设备管理器设置 COM 端口号后，按照游戏的波特率设置代码的`high_baudrate`选项；
 7. 上传程序打开游戏测试。
 
