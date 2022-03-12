@@ -132,8 +132,11 @@ void SerialCheck() {
     case SG_NFC_CMD_FELICA_ENCAP:
       sg_nfc_cmd_felica_encap();
       break;
-    case SG_NFC_CMD_MIFARE_AUTHENTICATE:
-      sg_nfc_cmd_mifare_authenticate();
+    case SG_NFC_CMD_AIME_AUTHENTICATE:
+      sg_nfc_cmd_aime_authenticate();
+      break;
+    case SG_NFC_CMD_BANA_AUTHENTICATE:
+      sg_nfc_cmd_bana_authenticate();
       break;
     case SG_NFC_CMD_MIFARE_SELECT_TAG:
       sg_nfc_cmd_mifare_select_tag();
@@ -142,7 +145,7 @@ void SerialCheck() {
       sg_nfc_cmd_mifare_set_key_aime();
       break;
     case SG_NFC_CMD_MIFARE_SET_KEY_BANA:
-      sg_res_init();
+      sg_nfc_cmd_mifare_set_key_bana();
       break;
     case SG_NFC_CMD_RADIO_ON:
       sg_nfc_cmd_radio_on();

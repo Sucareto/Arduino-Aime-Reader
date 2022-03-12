@@ -9,7 +9,7 @@ CRGB leds[NUM_LEDS];
 PN532_I2C pn532i2c(Wire);
 PN532 nfc(pn532i2c);
 
-uint8_t AimeKey[6];
+uint8_t AimeKey[6], BanaKey[6];;
 
 enum {
   SG_NFC_CMD_GET_FW_VERSION       = 0x30,
@@ -22,7 +22,7 @@ enum {
   SG_NFC_CMD_BANA_AUTHENTICATE    = 0x51,
   SG_NFC_CMD_MIFARE_READ_BLOCK    = 0x52,
   SG_NFC_CMD_MIFARE_SET_KEY_AIME  = 0x54,
-  SG_NFC_CMD_MIFARE_AUTHENTICATE  = 0x55,
+  SG_NFC_CMD_AIME_AUTHENTICATE    = 0x55,
   SG_NFC_CMD_UNKNOW0              = 0x60, /* maybe some stuff about AimePay*/
   SG_NFC_CMD_UNKNOW1              = 0x61,
   SG_NFC_CMD_RESET                = 0x62,
@@ -159,6 +159,11 @@ static void sg_nfc_cmd_mifare_set_key_aime() {
   memcpy(AimeKey, req.key, 6);
 }
 
+static void sg_nfc_cmd_mifare_set_key_bana() {
+  sg_res_init();
+  memcpy(BanaKey, req.key, 6);
+}
+
 static void sg_led_cmd_reset() {
   sg_res_init();
   FastLED.clear();
@@ -214,10 +219,20 @@ static void sg_nfc_cmd_mifare_select_tag() {
   sg_res_init();
 }
 
-static void sg_nfc_cmd_mifare_authenticate() {
+static void sg_nfc_cmd_aime_authenticate() {
   sg_res_init();
   //AuthenticateBlock(uid,uidLen,block,keyType(A=0,B=1),keyData)
   if (nfc.mifareclassic_AuthenticateBlock(req.uid, 4, req.block_no, 1, AimeKey)) {
+    return;
+  } else {
+    res.status = 1;
+  }
+}
+
+static void sg_nfc_cmd_bana_authenticate() {
+  sg_res_init();
+  //AuthenticateBlock(uid,uidLen,block,keyType(A=0,B=1),keyData)
+  if (nfc.mifareclassic_AuthenticateBlock(req.uid, 4, req.block_no, 0, BanaKey)) {
     return;
   } else {
     res.status = 1;
