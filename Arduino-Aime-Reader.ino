@@ -1,3 +1,5 @@
+#include "cmd.h"
+
 #if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
 #pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
 #define SerialDevice SerialUSB
@@ -7,6 +9,7 @@
 #pragma message "当前的开发板是 NODEMCU_ESP12E"
 #define SerialDevice Serial
 #define LED_PIN D5
+//#define SwitchBaudPIN D4 //修改波特率按钮
 
 #elif defined(ARDUINO_NodeMCU_32S)
 #pragma message "当前的开发板是 NodeMCU_32S"
@@ -17,40 +20,45 @@
 #error "未经测试的开发板，请检查串口和阵脚定义"
 #endif
 
-#define high_baudrate//high_baudrate=true
-#include "cmd.h"
+bool high_baudrate = true;//high_baudrate=true
 
 void setup() {
-#ifdef high_baudrate
-  SerialDevice.begin(115200);
-#else
-  SerialDevice.begin(38400);
-#endif
-  SerialDevice.setTimeout(0);
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(50);
-  FastLED.clear();
-  FastLED.show();
+  FastLED.showColor(0);
   nfc.begin();
   while (!nfc.getFirmwareVersion()) {
-    fill_solid(leds, NUM_LEDS, 0xFF0000);
-    FastLED.show();
+    FastLED.showColor(0xFF0000);
     delay(500);
-    fill_solid(leds, NUM_LEDS, 0x000000);
-    FastLED.show();
+    FastLED.showColor(0);
     delay(500);
   }
   nfc.setPassiveActivationRetries(0x10);//设定等待次数
   nfc.SAMConfig();
   memset(&req, 0, sizeof(req.bytes));
   memset(&res, 0, sizeof(res.bytes));
-  fill_solid(leds, NUM_LEDS, 0xFFD700);
-  FastLED.show();
+
+  SerialDevice.begin(high_baudrate ? 115200 : 38400);
+  FastLED.showColor(high_baudrate ? 0x0000FF : 0x00FF00);
+
+#ifdef SwitchBaudPIN
+#pragma message "已启用波特率切换功能"
+  pinMode(SwitchBaudPIN, INPUT_PULLUP);
+#endif
 }
 
 void loop() {
   SerialCheck();
   packet_write();
+#ifdef SwitchBaudPIN
+  if (!digitalRead(SwitchBaudPIN)) {
+    high_baudrate = !high_baudrate;
+    SerialDevice.flush();
+    SerialDevice.begin(high_baudrate ? 115200 : 38400);
+    FastLED.showColor(high_baudrate ? 0x0000FF : 0x00FF00);
+    delay(2000);
+  }
+#endif
 }
 
 static uint8_t len, r, checksum;

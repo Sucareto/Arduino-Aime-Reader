@@ -33,10 +33,10 @@ enum {
 
   //FELICA_ENCAP
   FELICA_CMD_POLL                 = 0x00,
+  FELICA_CMD_NDA_06               = 0x06,
+  FELICA_CMD_NDA_08               = 0x08,
   FELICA_CMD_GET_SYSTEM_CODE      = 0x0C,
   FELICA_CMD_NDA_A4               = 0xA4,
-  FELICA_CMD_NDA_06               = 0x06,//测试中，作用未知
-  FELICA_CMD_NDA_08               = 0x08,//测试中，作用未知
 };
 
 typedef union packet_req {
@@ -134,8 +134,7 @@ static void sg_nfc_cmd_reset() { //重置读卡器
     res.status = 3;
     return;
   }
-  fill_solid(leds, NUM_LEDS, 0xFFFF00);
-  FastLED.show();
+  FastLED.showColor(0xFF0000);
 }
 
 static void sg_nfc_cmd_get_fw_version() {
@@ -166,8 +165,7 @@ static void sg_nfc_cmd_mifare_set_key_bana() {
 
 static void sg_led_cmd_reset() {
   sg_res_init();
-  FastLED.clear();
-  FastLED.show();
+  FastLED.showColor(0);
 }
 
 static void sg_led_cmd_get_info() {
@@ -177,11 +175,7 @@ static void sg_led_cmd_get_info() {
 }
 
 static void sg_led_cmd_set_color() {
-  uint8_t r = req.color_payload[0];
-  uint8_t g = req.color_payload[1];
-  uint8_t b = req.color_payload[2];
-  fill_solid(leds, NUM_LEDS, CRGB(r, g, b));
-  FastLED.show();
+  FastLED.showColor(CRGB(req.color_payload[0], req.color_payload[1], req.color_payload[2]));
 }
 
 static void sg_nfc_cmd_radio_on() {
