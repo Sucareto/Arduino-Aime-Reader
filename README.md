@@ -6,13 +6,15 @@
 
 
 ### 使用方法：
-1. 按照 [PN532](https://github.com/elechouse/PN532) 的提示安装库；
-2. Arduino 和 PN532 接好 VCC，GND，SDA，SCL；
-3. PN532 的拨码开关按照 PCB 上丝印的指示，调整到 I2C 模式；
-4. 接上 WS2812B 灯条（可选）；
-5. 上传 [ReaderTest](tools/ReaderTest/ReaderTest.ino) 测试硬件是否工作正常；
-6. 若读卡正常，可按照支持列表打开设备管理器设置 COM 端口号后，按照游戏的波特率设置代码的`high_baudrate`选项；
-7. 上传程序打开游戏测试。
+1. 按照 [PN532](https://github.com/elechouse/PN532) 的提示安装库
+2. Arduino 和 PN532 接好 VCC，GND，SDA，SCL
+3. PN532 的拨码开关按照 PCB 上丝印的指示，调整到 I2C 模式
+4. 接上 WS2812B 灯条（可选）
+5. 上传 [ReaderTest](tools/ReaderTest/ReaderTest.ino) 测试硬件是否工作正常
+6. 若读卡正常，可按照支持列表打开设备管理器设置 COM 端口号
+7. 按照游戏的波特率设置代码的`high_baudrate`选项
+8. 上传程序打开游戏测试
+9. 安装 [MifareClassicTool](https://github.com/ikarus23/MifareClassicTool)，修改 [Aime 卡示例](doc/aime示例.mct) 后写入空白 MIFARE UID/CUID 卡
 
 某些 Arduino 可能需要在游戏主程序连接前给串口以正确的波特率发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动主程序。  
 如果是 SDBT，可以在启动前运行一次 [DTR-RTS.exe](tools/DTR-RTS.exe) 以向 COM1 和 COM12 发送DTR/RTS。  
@@ -20,13 +22,17 @@
 
 
 ### 支持列表：
-- SDBT：COM12，支持读取 FeliCa 和 MIFARE
-- SDDT/SDEZ：COM1，支持读取 FeliCa 和 MIFARE
-- SBZV/SDDF：COM10，支持读取 FeliCa 和 MIFARE
-- SDEY：COM2，仅支持读取 MIFARE
-- SDHD：COM4，支持读取 FeliCa 和 MIFARE
+| 游戏代号 | COM端口号 | 支持的卡 | 默认波特率 |
+| - | - | - | - |
+| SDDT/SDEZ | COM1 | FeliCa,MIFARE | 115200 |
+| SDEY | COM2 | MIFARE | 38400 |
+| SDHD | COM4 | FeliCa,MIFARE | cvt=38400,sp=115200 |
+| SBZV/SDDF | COM10 | FeliCa,MIFARE | 38400 |
+| SDBT | COM12 | FeliCa,MIFARE | 38400 |
 
-有使用 amdaemon 的，可以参考 config_common.json 内 aime > unit > port,high_baudrate 来确定 COM 号和波特率。  
+- 如果读卡器没有正常工作，可以切换波特率试下
+- 有使用 amdaemon 的，可以参考 config_common.json 内 aime > unit > port 确认端口号
+- 如果 `"high_baudrate" : true` 则波特率是`115200`，否则就是`38400`
 
 
 ### 已测试开发板：
