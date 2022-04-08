@@ -9,7 +9,7 @@ CRGB leds[NUM_LEDS];
 PN532_I2C pn532i2c(Wire);
 PN532 nfc(pn532i2c);
 
-uint8_t AimeKey[6], BanaKey[6];;
+uint8_t AimeKey[6], BanaKey[6];
 
 enum {
   SG_NFC_CMD_GET_FW_VERSION       = 0x30,
