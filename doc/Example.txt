@@ -30,13 +30,13 @@ E0 [13] 00 [  ] (71) 00 [0D 0D] (0D) [ 8 byte IDm ] 01 00 00 [  ]
 E0 [18] 00 [  ] (71) 13 [ 8 byte IDm ] 0B (A4) [ 8 byte IDm ] 00 [  ]
 E0 [11] 00 [  ] (71) 00 [0B 0B] (A5) [ 8 byte IDm ] 00 [  ]
 
-//SG_NFC_CMD_FELICA_ENCAP,FELICA_CMD_NDA_06
+//SG_NFC_CMD_FELICA_ENCAP,FELICA_CMD_NDA_06, READ block 82
 E0 [1D] 00 [  ] (71) 18 [ 8 byte IDm ] 10 (06) [ 8 byte IDm ] [01 0B 00 01 80 82] [  ]
-E0 [23] 00 [  ] (71) 00 [1D 1D] (07) [ 8 byte IDm ] [00 00 01] [ 8 byte IDm ] [ 8 byte unknown data ] [  ]
+E0 [23] 00 [  ] (71) 00 [1D 1D] (07) [ 8 byte IDm ] [00 00 01] [ 8 byte IDm ] [ 2 byte Data Format Code ] [ 6 byte unknown data ] [  ]
 
-//SG_NFC_CMD_FELICA_ENCAP,FELICA_CMD_NDA_06
+//SG_NFC_CMD_FELICA_ENCAP,FELICA_CMD_NDA_06, READ block 00
 E0 [1D] 00 [  ] (71) 18 [ 8 byte IDm ] 10 (06) [ 8 byte IDm ] [01 0B 00 01 80 00] [  ]
-E0 [23] 00 [  ] (71) 00 [1D 1D] (07) [ 8 byte IDm ] [00 00 01] [ 16 byte unknown data ] [ ]
+E0 [23] 00 [  ] (71) 00 [1D 1D] (07) [ 8 byte IDm ] [00 00 01] [ 16 byte block data ] [ ]
 
 //SG_NFC_CMD_FELICA_ENCAP,FELICA_CMD_NDA_06
 E0 [23] 00 [  ] (71) 1E [ 8 byte IDm ] 16 (06) [ 8 byte IDm ] [01 0B 00 04 80 82 80 86 80 90 80 91] [  ]
