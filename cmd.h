@@ -69,7 +69,7 @@ typedef union packet_req {
             uint8_t numService;//and NDA_A4 unknown byte
             uint8_t serviceCodeList[2];
             uint8_t numBlock;
-            uint8_t blockList[4][2];
+            uint8_t blockList[1][2];//长度可变
             uint8_t blockData[16];//WriteWithoutEncryption,ignore
           };
           uint8_t felica_payload[113];
@@ -116,7 +116,7 @@ typedef union packet_res {
           struct {
             uint8_t RW_status[2];//猜测,NDA_06,NDA_08
             uint8_t numBlock;//NDA_06
-            uint8_t blockData[4][16];//NDA_06
+            uint8_t blockData[1][1][16];//NDA_06
           };
           uint8_t felica_payload[112];
         };
@@ -291,21 +291,19 @@ static void sg_nfc_cmd_felica_encap() {
       break;
     case FELICA_CMD_NDA_06:
       {
-        uint16_t serviceCodeList[1] = {req.serviceCodeList[1] << 8 | req.serviceCodeList[0]};
-        uint16_t blockList[4] = {
-          req.blockList[0][0] << 8 | req.blockList[0][1],
-          req.blockList[1][0] << 8 | req.blockList[1][1],
-          req.blockList[2][0] << 8 | req.blockList[2][1],
-          req.blockList[3][0] << 8 | req.blockList[3][1],
-        };
-        if (nfc.felica_ReadWithoutEncryption(req.numService, serviceCodeList, req.numBlock, blockList, res.blockData) == 1) {
-          sg_res_init(0x0E + req.numBlock * 16);
-          res.numBlock = req.numBlock;
-        } else {
-          sg_res_init();
-          res.status = 1;
-          return;
+        uint16_t serviceCodeList[1] = {(uint16_t)(req.serviceCodeList[1] << 8 | req.serviceCodeList[0])};//大小端反转注意
+        for (uint8_t i = 0; i < req.numBlock; i++) {
+          uint16_t blockList[1] = {(uint16_t)(req.blockList[i][0] << 8 | req.blockList[i][1])};
+          if (nfc.felica_ReadWithoutEncryption(1, serviceCodeList, 1, blockList, res.blockData[i]) != 1) {
+            sg_res_init();
+            res.status = 1;
+            return;
+          }
         }
+        res.RW_status[0] = 0;
+        res.RW_status[1] = 0;
+        res.numBlock = req.numBlock;
+        sg_res_init(0x0D + req.numBlock * 16);
       }
       break;
     case FELICA_CMD_NDA_08:
