@@ -1,6 +1,6 @@
 # Arduino-Aime-Reader
 使用 Arduino + PN532 + WS2812B 制作的 Aime 兼容读卡器。    
-支持 [FeliCa](https://zh.wikipedia.org/wiki/FeliCa)（Amusement IC、Suica、八达通等）和 [MIFARE](https://zh.wikipedia.org/wiki/MIFARE)（Aime，Banapassport）。    
+支持卡片类型： [FeliCa](https://zh.wikipedia.org/wiki/FeliCa)（Amusement IC、Suica、八达通等）和 [MIFARE](https://zh.wikipedia.org/wiki/MIFARE)（Aime，Banapassport）。    
 实现逻辑为官方读卡器串口数据对比 + 脑补，不保证正确实现。    
 通信数据格式参考了 [Segatools]() 和官方读卡器抓包数据，可在 [Example.txt](doc/Example.txt) 和 [nfc.txt](doc/nfc.txt) 查看。   
 
@@ -42,12 +42,14 @@
 
 
 ### 已知问题：
-- Felica 在非 amdaemon 游戏可能无法正常工作，因为 NDA_06 未正确回复
+- 在 NDA_08 命令的写入 Felica 操作没有实现，因为未确认是否会影响卡片后续使用
 - 未确定`res.status`的意义，因此`res.status = 1;`可能是错误的
 - 因为`get_fw`和`get_hw`返回的是自定义版本号，启动时可能触发 amdaemon 的固件升级，可以将 aime_firm 文件夹重命名或删除
 - 未实现`mifare_select_tag`，未支持多卡选择，只会读到最先识别的卡片
 
 
 ### 引用库：  
-- [驱动WS2812B FastLED.h](https://github.com/FastLED/FastLED)
-- [驱动PN532 PN532.h](https://github.com/elechouse/PN532)
+- 驱动 WS2812B：[FastLED](https://github.com/FastLED/FastLED)
+- 驱动 PN532：[PN532](https://github.com/elechouse/PN532)
+- 读取 FeliCa 参考：[PN532を使ってArduinoでFeliCa学生証を読む方法](https://qiita.com/gpioblink/items/91597a5275862f7ffb3c)
+- 读取 FeliCa 数据的程序：[NFC TagInfo](https://play.google.com/store/apps/details?id=at.mroland.android.apps.nfctaginfo)，[NFC TagInfo by NXP](https://play.google.com/store/apps/details?id=com.nxp.taginfolite)
