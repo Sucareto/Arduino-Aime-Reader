@@ -55,14 +55,28 @@ typedef union packet_req {
         uint8_t block_no;
       };
       struct { //sg_nfc_req_felica_encap
-        uint8_t IDm[8];
+        uint8_t encap_IDm[8];
         uint8_t encap_len;
-        uint8_t code;
-        uint8_t felica_payload[113];
+        uint8_t encap_code;
+        union {
+          struct { //FELICA_CMD_POLL，猜测
+            uint16_t poll_systemCode;
+            uint8_t poll_requestCode;
+            uint8_t poll_timeout;
+          };
+          struct { //NDA_06,NDA_08,NDA_A4
+            uint8_t RW_IDm[8];
+            uint8_t numService;//and NDA_A4 unknown byte
+            uint16_t serviceCodeList;
+            uint8_t numBlock;
+            uint16_t blockList[4];
+            uint8_t blockData[16];//WriteWithoutEncryption,ignore
+          };
+          uint8_t felica_payload[113];
+        };
       };
     };
   };
-
 } packet_req_t;
 
 typedef union packet_res {
@@ -76,7 +90,6 @@ typedef union packet_res {
     uint8_t payload_len;
     union {
       char version[23]; //sg_nfc_res_get_fw_version,sg_nfc_res_get_hw_version
-      uint8_t reset_payload; //sg_led_res_reset
       uint8_t info_payload[9]; //sg_led_res_get_info
       uint8_t block[16]; //sg_nfc_res_mifare_read_block
       struct { //sg_nfc_res_poll
@@ -93,17 +106,17 @@ typedef union packet_res {
       };
       struct { //sg_nfc_res_felica_encap
         uint8_t encap_len;
-        uint8_t code;
+        uint8_t encap_code;
         uint8_t encap_IDm[8];
         union {
           struct {//FELICA_CMD_POLL
-            uint8_t encap_PMm[8];
-            uint8_t system_code[2];
+            uint8_t poll_PMm[8];
+            uint16_t poll_systemCode;
           };
-          struct {//NDA06
-            uint8_t NDA06_code[3];
-            uint8_t NDA06_IDm[8];
-            uint8_t NDA06_Data[8];
+          struct {
+            uint16_t RW_status;//猜测,NDA_06,NDA_08
+            uint8_t numBlock;//NDA_06
+            uint8_t blockData[4][16];//NDA_06
           };
           uint8_t felica_payload[112];
         };
@@ -244,7 +257,7 @@ static void sg_nfc_cmd_mifare_read_block() {//读取卡扇区数据
 
 static void sg_nfc_cmd_felica_encap() {
   uint16_t SystemCode;
-  if (nfc.felica_Polling(0xFFFF, 0x01, res.encap_IDm, res.encap_PMm, &SystemCode, 0x0F) == 1) {
+  if (nfc.felica_Polling(0xFFFF, 0x01, res.encap_IDm, res.poll_PMm, &SystemCode, 0x0F) == 1) {
     SystemCode = SystemCode >> 8 | SystemCode << 8;//SystemCode，大小端反转注意
   }
   else {
@@ -252,12 +265,12 @@ static void sg_nfc_cmd_felica_encap() {
     res.status = 1;
     return;
   }
-  uint8_t code = req.code;
-  res.code = code + 1;
+  uint8_t code = req.encap_code;
+  res.encap_code = code + 1;
   switch (code) {
     case FELICA_CMD_POLL:
       sg_res_init(0x14);
-      memcpy(res.system_code, &SystemCode, 2);
+      res.poll_systemCode = SystemCode;
       break;
     case FELICA_CMD_GET_SYSTEM_CODE:
       sg_res_init(0x0D);
@@ -270,17 +283,19 @@ static void sg_nfc_cmd_felica_encap() {
       res.felica_payload[0] = 0x00;
       break;
     case FELICA_CMD_NDA_06:
-      sg_res_init(0x1D);
-      memcpy(res.NDA06_Data, res.encap_PMm, 8);//未知，填补数据用
-      memcpy(res.NDA06_IDm, res.encap_IDm, 8);
-      res.NDA06_code[0] = 0x00;
-      res.NDA06_code[1] = 0x00;
-      res.NDA06_code[2] = 0x01;//未知
+      //大小端反转注意
+      if (nfc.felica_ReadWithoutEncryption(req.numService, &req.serviceCodeList, req.numBlock, req.blockList, res.blockData) == 1) {
+        sg_res_init(0x1D);
+        res.numBlock = req.numBlock;
+      } else {
+        sg_res_init();
+        res.status = 1;
+        return;
+      }
       break;
     case FELICA_CMD_NDA_08:
-      sg_res_init(0x0C);
-      res.felica_payload[0] = 0x00;
-      res.felica_payload[1] = 0x00;
+      sg_res_init(0x0C);//此处应有写入卡，但是不打算实现
+      res.RW_status = 0x0000;
       break;
     default:
       sg_res_init();
