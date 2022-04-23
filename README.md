@@ -7,14 +7,13 @@
 
 ### 使用方法：
 1. 按照 [PN532](https://github.com/elechouse/PN532) 的提示安装库
-2. Arduino 和 PN532 接好 VCC，GND，SDA，SCL
-3. PN532 的拨码开关按照 PCB 上丝印的指示，调整到 I2C 模式
-4. 接上 WS2812B 灯条（可选）
-5. 上传 [ReaderTest](tools/ReaderTest/ReaderTest.ino) 测试硬件是否工作正常
-6. 若读卡正常，可按照支持列表打开设备管理器设置 COM 端口号
-7. 按照游戏的波特率设置代码的`high_baudrate`选项
-8. 上传程序打开游戏测试
-9. 安装 [MifareClassicTool](https://github.com/ikarus23/MifareClassicTool)，修改 [Aime 卡示例](doc/aime示例.mct) 后写入空白 MIFARE UID/CUID 卡
+2. 按照使用方式，在 Arduino 和 PN532 接好连接线（I2C或SPI），并调整 PN532 上的拨码开关
+3. 接上 WS2812B 灯条（可选）
+4. 上传 [ReaderTest](tools/ReaderTest/ReaderTest.ino) 测试硬件是否工作正常
+5. 若读卡正常，可按照支持列表打开设备管理器设置 COM 端口号
+6. 按照游戏的波特率设置代码的`high_baudrate`选项，`115200`是`true`，`38400`是`false`
+7. 上传程序打开游戏测试
+8. 安装 [MifareClassicTool](https://github.com/ikarus23/MifareClassicTool)，修改 [Aime 卡示例](doc/aime示例.mct) 后写入空白 MIFARE UID/CUID 卡
 
 某些 Arduino 可能需要在游戏主程序连接前给串口以正确的波特率发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动主程序。  
 如果是 SDBT，可以在启动前运行一次 [DTR-RTS.exe](tools/DTR-RTS.exe) 以向 COM1 和 COM12 发送DTR/RTS。  

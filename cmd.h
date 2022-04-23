@@ -2,12 +2,40 @@
 #define NUM_LEDS 6
 CRGB leds[NUM_LEDS];
 
+#if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
+#pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
+#define SerialDevice SerialUSB
+#define LED_PIN A3
+#define PN532_SPI_SS 10 //32U4 不使用 SPI 时，执行 ReadWithoutEncryption 会失败
+
+#elif defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+#pragma message "当前的开发板是 NODEMCU_ESP12E"
+#define SerialDevice Serial
+#define LED_PIN D5
+//#define SwitchBaudPIN D4 //修改波特率按钮
+
+#elif defined(ARDUINO_NodeMCU_32S)
+#pragma message "当前的开发板是 NodeMCU_32S"
+#define SerialDevice Serial
+#define LED_PIN 13
+
+#else
+#error "未经测试的开发板，请检查串口和阵脚定义"
+#endif
+
+#if defined(PN532_SPI_SS)
+#pragma message "使用 SPI 连接 PN532"
+#include <SPI.h>
+#include <PN532_SPI.h>
+PN532_SPI pn532(SPI, PN532_SPI_SS);
+#else
 #include <Wire.h>
 #include <PN532_I2C.h>
-#include <PN532.h>
+PN532_I2C pn532(Wire);
+#endif
 
-PN532_I2C pn532i2c(Wire);
-PN532 nfc(pn532i2c);
+#include "PN532.h"
+PN532 nfc(pn532);
 
 uint8_t AimeKey[6], BanaKey[6];
 
@@ -153,15 +181,15 @@ static void sg_nfc_cmd_reset() { //重置读卡器
 static void sg_nfc_cmd_get_fw_version() {
   sg_res_init(23);
   //  memcpy(res.version, "TN32MSEC003S F/W Ver1.2", 23);
-  memcpy(res.version, "*SCRT_Reader F/W Ver1.2", 23);
+  memcpy(res.version, "-> Sucareto Aime Reader", 23);
   //  sg_res_init(1);
   //  memset(res.version, 0x94, 1);
 }
 
 static void sg_nfc_cmd_get_hw_version() {
   sg_res_init(23);
-  //    memcpy(res.version, "TN32MSEC003S H/W Ver3.0", 23);
-  memcpy(res.version, "*SCRT_Reader H/W Ver3.0", 23);
+  memcpy(res.version, "TN32MSEC003S H/W Ver3.0", 23);
+  //  memcpy(res.version, "-> Sucareto Aime Reader", 23);
   //  sg_res_init(9);
   //  memcpy(res.version, "837-15396", 9);
 }
