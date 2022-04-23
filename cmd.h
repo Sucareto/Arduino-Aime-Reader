@@ -72,7 +72,7 @@ typedef union packet_req {
             uint8_t blockList[1][2];//长度可变
             uint8_t blockData[16];//WriteWithoutEncryption,ignore
           };
-          uint8_t felica_payload[113];
+          uint8_t felica_payload[1];
         };
       };
     };
@@ -118,7 +118,7 @@ typedef union packet_res {
             uint8_t numBlock;//NDA_06
             uint8_t blockData[1][1][16];//NDA_06
           };
-          uint8_t felica_payload[112];
+          uint8_t felica_payload[1];
         };
       };
     };
@@ -295,9 +295,7 @@ static void sg_nfc_cmd_felica_encap() {
         for (uint8_t i = 0; i < req.numBlock; i++) {
           uint16_t blockList[1] = {(uint16_t)(req.blockList[i][0] << 8 | req.blockList[i][1])};
           if (nfc.felica_ReadWithoutEncryption(1, serviceCodeList, 1, blockList, res.blockData[i]) != 1) {
-            sg_res_init();
-            res.status = 1;
-            return;
+            memset(res.blockData[i], 0, 16);//dummy data
           }
         }
         res.RW_status[0] = 0;
