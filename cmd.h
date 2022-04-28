@@ -18,6 +18,7 @@ CRGB leds[NUM_LEDS];
 #pragma message "当前的开发板是 NodeMCU_32S"
 #define SerialDevice Serial
 #define LED_PIN 13
+#define PN532_SPI_SS 5
 
 #else
 #error "未经测试的开发板，请检查串口和阵脚定义"
@@ -167,7 +168,7 @@ static void sg_res_init(uint8_t payload_len = 0) { //初始化模板
 
 static void sg_nfc_cmd_reset() { //重置读卡器
   nfc.begin();
-  nfc.setPassiveActivationRetries(0x10); //设定等待次数,0xFF永远等待
+  nfc.setPassiveActivationRetries(0x01); //设定等待次数,0xFF永远等待
   nfc.SAMConfig();
   if (nfc.getFirmwareVersion()) {
     nfc.SAMConfig();
@@ -237,7 +238,7 @@ static void sg_nfc_cmd_poll() { //卡号发送
     res.type = 0x10;
     return;
   }
-  else if (nfc.felica_Polling(0xFFFF, 0x00, res.IDm, res.PMm, &SystemCode, 0x0F) == 1) {//< 0: error
+  else if (nfc.felica_Polling(0xFFFF, 0x00, res.IDm, res.PMm, &SystemCode, 200) == 1) {//< 0: error
     sg_res_init(0x13);
     res.count = 1;
     res.type = 0x20;
@@ -285,7 +286,7 @@ static void sg_nfc_cmd_mifare_read_block() {//读取卡扇区数据
 
 static void sg_nfc_cmd_felica_encap() {
   uint16_t SystemCode;
-  if (nfc.felica_Polling(0xFFFF, 0x01, res.encap_IDm, res.poll_PMm, &SystemCode, 0x0F) == 1) {
+  if (nfc.felica_Polling(0xFFFF, 0x01, res.encap_IDm, res.poll_PMm, &SystemCode, 200) == 1) {
     SystemCode = SystemCode >> 8 | SystemCode << 8;//SystemCode，大小端反转注意
   }
   else {
