@@ -12,7 +12,6 @@ CRGB leds[NUM_LEDS];
 #pragma message "当前的开发板是 NODEMCU_ESP12E"
 #define SerialDevice Serial
 #define LED_PIN D5
-//#define SwitchBaudPIN D4 //修改波特率按钮
 
 #elif defined(ARDUINO_NodeMCU_32S)
 #pragma message "当前的开发板是 NodeMCU_32S"
@@ -52,8 +51,8 @@ enum {
   SG_NFC_CMD_MIFARE_READ_BLOCK    = 0x52,
   SG_NFC_CMD_MIFARE_SET_KEY_AIME  = 0x54,
   SG_NFC_CMD_AIME_AUTHENTICATE    = 0x55,
-  SG_NFC_CMD_UNKNOW0              = 0x60, /* maybe some stuff about AimePay*/
-  SG_NFC_CMD_UNKNOW1              = 0x61,
+  SG_NFC_CMD_TO_UPDATER_MODE      = 0x60,
+  SG_NFC_CMD_SEND_HEX_DATA        = 0x61,
   SG_NFC_CMD_RESET                = 0x62,
   SG_NFC_CMD_FELICA_ENCAP         = 0x71,
   SG_RGB_CMD_SET_COLOR            = 0x81,
@@ -181,18 +180,12 @@ static void sg_nfc_cmd_reset() { //重置读卡器
 
 static void sg_nfc_cmd_get_fw_version() {
   sg_res_init(23);
-  //  memcpy(res.version, "TN32MSEC003S F/W Ver1.2", 23);
-  memcpy(res.version, "-> Sucareto Aime Reader", 23);
-  //  sg_res_init(1);
-  //  memset(res.version, 0x94, 1);
+  memcpy(res.version, "TN32MSEC003S F/W Ver1.2", 23);
 }
 
 static void sg_nfc_cmd_get_hw_version() {
   sg_res_init(23);
   memcpy(res.version, "TN32MSEC003S H/W Ver3.0", 23);
-  //  memcpy(res.version, "-> Sucareto Aime Reader", 23);
-  //  sg_res_init(9);
-  //  memcpy(res.version, "837-15396", 9);
 }
 
 static void sg_nfc_cmd_mifare_set_key_aime() {
@@ -207,7 +200,6 @@ static void sg_nfc_cmd_mifare_set_key_bana() {
 
 static void sg_led_cmd_reset() {
   sg_res_init();
-  FastLED.showColor(0);
 }
 
 static void sg_led_cmd_get_info() {

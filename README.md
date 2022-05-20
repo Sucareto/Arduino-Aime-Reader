@@ -38,12 +38,12 @@
 - SparkFun Pro Micro（ATmega32U4），需要发送 DTR/RTS
 - SparkFun SAMD21 Dev Breakout（ATSAMD21G18）
 - NodeMCU 1.0（ESP-12E + CP2102 & CH340），SDA=D2，SCL=D1
+- NodeMCU-32S（ESP32-S + CH340）
 
 
 ### 已知问题：
 - 在 NDA_08 命令的写入 Felica 操作没有实现，因为未确认是否会影响卡片后续使用
 - 未确定`res.status`的意义，因此`res.status = 1;`可能是错误的
-- 因为`get_fw`和`get_hw`返回的是自定义版本号，启动时可能触发 amdaemon 的固件升级，可以将 aime_firm 文件夹重命名或删除
 - 未实现`mifare_select_tag`，未支持多卡选择，只会读到最先识别的卡片
 
 

@@ -19,25 +19,11 @@ void setup() {
 
   SerialDevice.begin(high_baudrate ? 115200 : 38400);
   FastLED.showColor(high_baudrate ? 0x0000FF : 0x00FF00);
-
-#ifdef SwitchBaudPIN
-#pragma message "已启用波特率切换功能"
-  pinMode(SwitchBaudPIN, INPUT_PULLUP);
-#endif
 }
 
 void loop() {
   SerialCheck();
   packet_write();
-#ifdef SwitchBaudPIN
-  if (!digitalRead(SwitchBaudPIN)) {
-    high_baudrate = !high_baudrate;
-    SerialDevice.flush();
-    SerialDevice.begin(high_baudrate ? 115200 : 38400);
-    FastLED.showColor(high_baudrate ? 0x0000FF : 0x00FF00);
-    delay(2000);
-  }
-#endif
 }
 
 static uint8_t len, r, checksum;
