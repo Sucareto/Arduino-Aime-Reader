@@ -1,9 +1,12 @@
 # Arduino-Aime-Reader
-使用 Arduino + PN532 + WS2812B 制作的 Aime 兼容读卡器。    
-支持卡片类型： [FeliCa](https://zh.wikipedia.org/wiki/FeliCa)（Amusement IC、Suica、八达通等）和 [MIFARE](https://zh.wikipedia.org/wiki/MIFARE)（Aime，Banapassport）。    
+使用 Arduino + PN532 + WS2812B 制作的 Aime 兼容读卡器。   
+**目前所有主要功能已经实现，如果没有 bug 应该不会再更新。**   
+English: [lawliuwuu/Arduino-Aime-Reader](https://github.com/lawliuwuu/Arduino-Aime-Reader)   
+
+支持卡片类型： [FeliCa](https://zh.wikipedia.org/wiki/FeliCa)（Amusement IC、Suica、八达通等）和 [MIFARE](https://zh.wikipedia.org/wiki/MIFARE)（Aime，Banapassport）。   
 实现逻辑为官方读卡器串口数据对比 + 脑补，不保证正确实现。    
 通信数据格式参考了 [Segatools]() 和官方读卡器抓包数据，可在 [Example.txt](doc/Example.txt) 和 [nfc.txt](doc/nfc.txt) 查看。   
-
+一个使用例：[ESP32-CardReader](https://github.com/Sucareto/ESP32-CardReader)   
 
 ### 使用方法：
 1. 按照 [PN532](https://github.com/elechouse/PN532) 的提示安装库
