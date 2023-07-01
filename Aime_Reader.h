@@ -58,14 +58,12 @@ uint8_t KeyA[6], KeyB[6];
 enum {
   CMD_GET_FW_VERSION = 0x30,
   CMD_GET_HW_VERSION = 0x32,
-
   // Card read
   CMD_START_POLLING = 0x40,
   CMD_STOP_POLLING = 0x41,
   CMD_CARD_DETECT = 0x42,
   CMD_CARD_SELECT = 0x43,
   CMD_CARD_HALT = 0x44,
-
   // MIFARE
   CMD_MIFARE_KEY_SET_A = 0x50,
   CMD_MIFARE_AUTHORIZE_A = 0x51,
@@ -73,24 +71,20 @@ enum {
   CMD_MIFARE_WRITE = 0x53,
   CMD_MIFARE_KEY_SET_B = 0x54,
   CMD_MIFARE_AUTHORIZE_B = 0x55,
-
   // Boot,update
   CMD_TO_UPDATER_MODE = 0x60,
   CMD_SEND_HEX_DATA = 0x61,
   CMD_TO_NORMAL_MODE = 0x62,
   CMD_SEND_BINDATA_INIT = 0x63,
   CMD_SEND_BINDATA_EXEC = 0x64,
-
   // FeliCa
   CMD_FELICA_PUSH = 0x70,
   CMD_FELICA_THROUGH = 0x71,
-
   CMD_FELICA_THROUGH_POLL = 0x00,
   CMD_FELICA_THROUGH_READ = 0x06,
   CMD_FELICA_THROUGH_WRITE = 0x08,
   CMD_FELICA_THROUGH_GET_SYSTEM_CODE = 0x0C,
   CMD_FELICA_THROUGH_NDA_A4 = 0xA4,
-
   // LED board
   CMD_EXT_BOARD_LED = 0x80,
   CMD_EXT_BOARD_LED_RGB = 0x81,
@@ -142,8 +136,8 @@ typedef union {
             uint8_t numService;
             uint8_t serviceCodeList[2];
             uint8_t numBlock;
-            uint8_t blockList[1][2]; // CMD_FELICA_THROUGH_READ
-            uint8_t blockData[16]; // CMD_FELICA_THROUGH_WRITE
+            uint8_t blockList[1][2];  // CMD_FELICA_THROUGH_READ
+            uint8_t blockData[16];    // CMD_FELICA_THROUGH_WRITE
           };
           uint8_t felica_payload[1];
         };
@@ -340,7 +334,7 @@ void nfc_mifare_read() {
   res_init(0x10);
   if (!nfc.mifareclassic_ReadDataBlock(req.block_no, res.block)) {
     res_init();
-    res.status = ERROR_CARD_DETECT_TIMEOUT; // TODO
+    res.status = ERROR_CARD_DETECT_TIMEOUT;
   }
 }
 

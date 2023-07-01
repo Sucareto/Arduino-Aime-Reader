@@ -1,6 +1,5 @@
 #define high_baudrate
-
-#include "Aime_Redaer.h"
+#include "Aime_Reader.h"
 
 void setup() {
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
