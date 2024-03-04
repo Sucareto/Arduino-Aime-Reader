@@ -1,28 +1,41 @@
-#if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
-#pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
+#if defined(__AVR_ATmega32U4__)
+#pragma message "当前的开发板是 ATmega32U4"
 #define SerialDevice SerialUSB
-#define PN532_SPI_SS 10 //32U4 不使用 SPI 时，执行 ReadWithoutEncryption 会失败
+#define PN532_SPI_SS 10
+// #define PN532_HSU_Device Serial1
+// 32U4 使用 I2C 时，执行 ReadWithoutEncryption 会失败
+// 需要修改 Wire BUFFER_LENGTH 和 TWI_BUFFER_LENGTH 为 64
 
-#elif defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-#pragma message "当前的开发板是 NODEMCU_ESP12E"
+#elif defined(ESP8266)
+#pragma message "当前的开发板是 ESP8266"
 #define SerialDevice Serial
+#define PN532_SPI_SS D4
+// ESP8266 没有完整的 Serial1，无法使用 HSU
+// I2C SDA=D2 SCL=D1
 
-#elif defined(ARDUINO_NodeMCU_32S)
-#pragma message "当前的开发板是 NodeMCU_32S"
+#elif defined(ESP32)
+#pragma message "当前的开发板是 ESP32"
 #define SerialDevice Serial
 #define PN532_SPI_SS 5
+// #define PN532_HSU_Device Serial2 // RX=16 TX=17
+// ESP32 使用 I2C 时响应太慢，无法正常使用
 
 #else
-#error "未经测试的开发板，请检查串口和阵脚定义"
+#error "未经测试的开发板，请检查串口和针脚定义"
 #endif
 
 #if defined(PN532_SPI_SS)
 #pragma message "使用 SPI 连接 PN532"
-#include <SPI.h>
 #include <PN532_SPI.h>
 PN532_SPI pn532(SPI, PN532_SPI_SS);
+
+#elif defined(PN532_HSU_Device)
+#pragma message "使用 HSU 连接 PN532"
+#include <PN532_HSU.h>
+PN532_HSU pn532(PN532_HSU_Device);
+
 #else
-#include <Wire.h>
+#pragma message "使用 I2C 连接 PN532"
 #include <PN532_I2C.h>
 PN532_I2C pn532(Wire);
 #endif
@@ -43,12 +56,12 @@ typedef union {
 } Card;
 Card card;
 
-uint8_t AimeKey[6] = {0x57, 0x43, 0x43, 0x46, 0x76, 0x32};
-uint8_t BanaKey[6] = {0x60, 0x90, 0xD0, 0x06, 0x32, 0xF5};
-uint8_t MifareKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-#define M2F_B 1
-uint16_t blockList[4] = {0x8080, 0x8081, 0x8082, 0x8083};
-uint16_t serviceCodeList[1] = {0x000B};
+uint8_t AimeKey[6] = { 0x57, 0x43, 0x43, 0x46, 0x76, 0x32 };
+uint8_t BanaKey[6] = { 0x60, 0x90, 0xD0, 0x06, 0x32, 0xF5 };
+uint8_t MifareKey[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+#define M2F_B 1  // 指定作为 Access Code 读取的 block 序号
+uint16_t blockList[4] = { 0x8080, 0x8081, 0x8082, 0x8083 };
+uint16_t serviceCodeList[1] = { 0x000B };
 uint8_t blockData[1][16];
 
 void setup() {

@@ -2,7 +2,7 @@
 #include "Aime_Reader.h"
 
 void setup() {
-  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
   FastLED.setBrightness(50);
   FastLED.showColor(0);
   nfc.begin();

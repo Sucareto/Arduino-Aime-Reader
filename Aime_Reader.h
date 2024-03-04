@@ -1,23 +1,43 @@
-#if defined(__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_ZERO)
-#pragma message "当前的开发板是 ATmega32U4 或 SAMD_ZERO"
+#if defined(__AVR_ATmega32U4__)
+#pragma message "当前的开发板是 ATmega32U4"
 #define SerialDevice SerialUSB
-#define LED_PIN A3
 #define PN532_SPI_SS 10
+#define LED_PIN A3
 
 #elif defined(ESP8266)
 #pragma message "当前的开发板是 ESP8266"
 #define SerialDevice Serial
+#define PN532_SPI_SS D4
 #define LED_PIN D5
 
 #elif defined(ESP32)
 #pragma message "当前的开发板是 ESP32"
 #define SerialDevice Serial
-#define LED_PIN 13
 #define PN532_SPI_SS 5
+#define LED_PIN 13
 
 #else
 #error "未经测试的开发板，请检查串口和针脚定义"
 #endif
+
+#if defined(PN532_SPI_SS)
+#pragma message "使用 SPI 连接 PN532"
+#include <PN532_SPI.h>
+PN532_SPI pn532(SPI, PN532_SPI_SS);
+
+#elif defined(PN532_HSU_Device)
+#pragma message "使用 HSU 连接 PN532"
+#include <PN532_HSU.h>
+PN532_HSU pn532(PN532_HSU_Device);
+
+#else
+#pragma message "使用 I2C 连接 PN532"
+#include <PN532_I2C.h>
+PN532_I2C pn532(Wire);
+#endif
+
+#include "PN532.h"
+PN532 nfc(pn532);
 
 #ifdef high_baudrate
 #pragma message "high_baudrate 已启用"
@@ -39,20 +59,6 @@
 #define NUM_LEDS 8
 CRGB leds[NUM_LEDS];
 
-#if defined(PN532_SPI_SS)
-#pragma message "使用 SPI 连接 PN532"
-#include <SPI.h>
-#include <PN532_SPI.h>
-PN532_SPI pn532(SPI, PN532_SPI_SS);
-#else
-#pragma message "使用 I2C 连接 PN532"
-#include <Wire.h>
-#include <PN532_I2C.h>
-PN532_I2C pn532(Wire);
-#endif
-
-#include "PN532.h"
-PN532 nfc(pn532);
 uint8_t KeyA[6], KeyB[6];
 
 enum {
