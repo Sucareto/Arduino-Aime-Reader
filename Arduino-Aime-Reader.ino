@@ -71,9 +71,9 @@ void loop() {
       break;
 
     // FeliCa
-    case CMD_FELICA_THROUGH:
-      nfc_felica_through();
-      break;
+    // case CMD_FELICA_THROUGH:
+    //   nfc_felica_through();
+    //   break;
 
     // LED
     case CMD_EXT_BOARD_LED_RGB:
@@ -87,8 +87,20 @@ void loop() {
     case CMD_EXT_BOARD_LED_RGB_UNKNOWN:
       break;
 
+    case CMD_CARD_SELECT:
+    case CMD_CARD_HALT:
+    case CMD_EXT_TO_NORMAL_MODE:
+      res_init();
+      break;
+
+    case STATUS_SUM_ERROR:
+      res_init();
+      res.status = STATUS_SUM_ERROR;
+      break;
+
     default:
       res_init();
+      res.status = STATUS_INVALID_COMMAND;
   }
   packet_write();
 }
