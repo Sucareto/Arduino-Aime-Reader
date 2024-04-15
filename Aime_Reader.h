@@ -169,7 +169,7 @@ typedef union {
         uint8_t type;
         uint8_t id_len;
         union {
-          uint8_t mifare_uid[4];
+          uint8_t mifare_uid[7];  // 可以读取 MIFARE Ultralight，但游戏不支持
           struct {
             uint8_t IDm[8];
             uint8_t PMm[8];
@@ -306,8 +306,8 @@ void nfc_stop_polling() {
 void nfc_card_detect() {
   uint16_t SystemCode;
   uint8_t bufferLength;
-  if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, res.mifare_uid, &res.id_len) && nfc.getBuffer(&bufferLength)[4] == 0x08) {  // Only read cards with sak=0x08
-    res_init(0x07);
+  if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, res.mifare_uid, &res.id_len)) {
+    res_init(res.id_len + 3);
     res.count = 1;
     res.type = 0x10;
   } else if (nfc.felica_Polling(0xFFFF, 0x00, res.IDm, res.PMm, &SystemCode, 200) == 1) {
