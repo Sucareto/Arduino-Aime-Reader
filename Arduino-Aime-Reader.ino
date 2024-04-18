@@ -1,4 +1,7 @@
 #define high_baudrate
+
+#define SKIP_FeliCa_THROUGH
+
 #include "Aime_Reader.h"
 
 void setup() {
@@ -70,10 +73,11 @@ void loop() {
       nfc_mifare_read();
       break;
 
-    // FeliCa
-    // case CMD_FELICA_THROUGH:
-    //   nfc_felica_through();
-    //   break;
+#ifndef SKIP_FeliCa_THROUGH
+    case CMD_FELICA_THROUGH:
+      nfc_felica_through();
+      break;
+#endif
 
     // LED
     case CMD_EXT_BOARD_LED_RGB:
@@ -90,6 +94,8 @@ void loop() {
     case CMD_CARD_SELECT:
     case CMD_CARD_HALT:
     case CMD_EXT_TO_NORMAL_MODE:
+    case CMD_TO_UPDATER_MODE:
+    case CMD_SEND_HEX_DATA:
       res_init();
       break;
 
