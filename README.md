@@ -46,10 +46,10 @@
 
 
 ### 已知问题：
-- 在 NDA_08 命令的写入 Felica 操作没有实现，因为未确认是否会影响卡片后续使用
-- 未确定`res.status`错误码的定义，因此`res.status`的值可能是错误的
-- 因为 PN532 库不支持同时读取多张卡片，所以未实现`mifare_select_tag`，只会读到最先识别的卡片
-- 默认仅允许 SAK=0x08 的卡片，如果需要解除限制，可以自行修改源码
+- 默认未启用 FeliCa 读写功能，仅在 `CMD_CARD_DETECT` 时读取 IDm 和 PMm，该设置可以通过 `SKIP_FeliCa_THROUGH` 控制
+- 如果启用 FeliCa 读写功能，某些游戏可能不支持所有 FeliCa 卡种类，和官方读卡器 837-15286 行为一致
+- 因为 PN532 库支持的问题，未实现多卡同时读取，只会读到最先识别的卡片；刷不正确的 MIFARE 卡片（如交通卡、模拟卡）会导致游戏状态异常
+- 对于未适配的命令，默认回复 `STATUS_INVALID_COMMAND`，可能会导致游戏认为读卡器不可用
 - 如果遇到问题可以回滚到[稳定的 v1.0 版本](https://github.com/Sucareto/Arduino-Aime-Reader/tree/v1.0)
 
 
