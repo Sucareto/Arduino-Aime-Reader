@@ -17,8 +17,10 @@
 7. 如果有使用 [Segatools](https://github.com/djhackersdev/segatools)，参考 [segatools.ini 设置教程](https://github.com/djhackersdev/segatools/blob/master/doc/config/common.md#aime) 关闭 Aime 模拟功能
 8. 上传程序打开游戏测试
 
-如果需要自定义 Aime 卡，安装 [MifareClassicTool](https://github.com/ikarus23/MifareClassicTool) 或其他同样效果的软件，修改 [Aime 卡示例](doc/aime示例.mct) 后写入空白 MIFARE UID/CUID 卡，即可刷卡使用。关于自定义 Aime 卡的写入和读取问题，请参考 [SAK（88->08）](https://github.com/Sucareto/Arduino-Aime-Reader/pull/17)的讨论。  
-某些 Arduino 可能需要在游戏主程序连接前给串口以正确的波特率发送 DTR/RTS，需要先打开一次 Arduino 串口监视器再启动游戏程序。  
+如果需要自定义 Aime 卡，安装 [MifareClassicTool](https://github.com/ikarus23/MifareClassicTool) 或其他同样效果的软件，修改 [Aime 卡示例](doc/aime示例.mct) 后写入空白 MIFARE UID/CUID 卡，即可刷卡使用。  
+关于自定义 Aime 卡的写入和读取问题，请参考 [SAK（88->08）](https://github.com/Sucareto/Arduino-Aime-Reader/pull/17) 的讨论。
+
+某些 Arduino 可能需要在游戏主程序连接前，给串口以正确的波特率发送 DTR/RTS；可以先打开一次 Arduino 串口监视器再启动游戏程序。  
 
 
 ### 支持游戏列表：
