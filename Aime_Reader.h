@@ -400,7 +400,7 @@ void nfc_felica_through() {
     case FelicaWriteWithoutEncryptData:
       {
         uint16_t serviceCodeList = req.serviceCodeList[1] << 8 | req.serviceCodeList[0];
-        uint16_t blockList = (uint16_t)(req.blockList_write[0][0] << 8 | req.blockList_write[0][1]);
+        uint16_t blockList = (uint16_t)(req.blockList[0][0] << 8 | req.blockList[0][1]);
         nfc.felica_WriteWithoutEncryption(1, &serviceCodeList, 1, &blockList, &req.blockData);
         res_init(0x0C);
         res.RW_status[0] = 0;
