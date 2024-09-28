@@ -7,7 +7,7 @@
 #elif defined(ESP8266)
 #pragma message "当前的开发板是 ESP8266"
 #define SerialDevice Serial
-//#define PN532_SPI_SS D4
+#define PN532_SPI_SS D4
 #define LED_PIN D5
 
 #elif defined(ESP32)
