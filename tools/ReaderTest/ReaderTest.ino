@@ -62,12 +62,13 @@ uint8_t MifareKey[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 #define M2F_B 1  // 指定作为 Access Code 读取的 block 序号
 uint16_t blockList[4] = { 0x8080, 0x8081, 0x8082, 0x8083 };
 uint16_t serviceCodeList[1] = { 0x000B };
-uint8_t blockData[1][16];
+uint8_t blockData[4][16];
 
 void setup() {
   SerialDevice.begin(115200);
   //  Wire.setClock(800000);
-  while (!SerialDevice);
+  while (!SerialDevice)
+    ;
   nfc.begin();
   while (!nfc.getFirmwareVersion()) {
     SerialDevice.println("Didn't find PN53x board");
@@ -78,9 +79,10 @@ void setup() {
   nfc.SAMConfig();
 }
 
-void loop() {
+void loop() {  // 按代码顺序读取卡片、认证、输出，执行成功结束本次 loop
   uint8_t uid[4], uL;
 
+  // 读取 MIFARE 卡，使用 AimeKey 认证
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) && nfc.mifareclassic_AuthenticateBlock(uid, uL, 1, 1, AimeKey)) {
     SerialDevice.println("Aime card!");
     SerialDevice.print("UID Value:");
@@ -92,6 +94,7 @@ void loop() {
     delay(2000);
     return;
   }
+  // 读取 MIFARE 卡，使用 BanaKey 认证
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) && nfc.mifareclassic_AuthenticateBlock(uid, uL, 1, 0, BanaKey)) {
     SerialDevice.println("Banapassport card!");
     SerialDevice.print("UID Value:");
@@ -103,6 +106,7 @@ void loop() {
     delay(2000);
     return;
   }
+  // 读取 MIFARE 卡，使用 MIFARE 默认密钥认证（无加密卡）
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL) && nfc.mifareclassic_AuthenticateBlock(uid, uL, M2F_B, 0, MifareKey)) {
     SerialDevice.println("Default Key Mifare!");
     if (nfc.mifareclassic_ReadDataBlock(2, card.block)) {
@@ -114,6 +118,7 @@ void loop() {
     delay(2000);
     return;
   }
+  // 以上密钥认证失败，则仅打印 MIFARE UID
   if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uL)) {
     SerialDevice.println("Unknown key Mifare.");
     SerialDevice.print("UID Value:");
@@ -122,6 +127,7 @@ void loop() {
     return;
   }
 
+  // 读取 FeliCa 卡
   if (nfc.felica_Polling(0xFFFF, 0x01, card.IDm, card.PMm, &card.SystemCode, 200)) {
     SerialDevice.println("FeliCa card!");
     SerialDevice.print("IDm:");
@@ -132,15 +138,15 @@ void loop() {
     card.SystemCode = card.SystemCode >> 8 | card.SystemCode << 8;
     nfc.PrintHex(card.System_Code, 2);
 
-
+    // 读取 FeliCa 卡指定的 Block
     Serial.println("FeliCa Block:");
-    for (uint8_t i = 0; i < 4; i++) {
-      if (nfc.felica_ReadWithoutEncryption(1, serviceCodeList, 1, &blockList[i], blockData) == 1) {
+    if (nfc.felica_ReadWithoutEncryption(1, serviceCodeList, 4, blockList, blockData) == 1) {
+      for (int i = 0; i < 4; i++) {
         Serial.println(blockList[i], HEX);
-        nfc.PrintHex(blockData[0], 16);
-      } else {
-        Serial.println("error");
+        nfc.PrintHex(blockData[i], 16);
       }
+    } else {
+      Serial.println("error");
     }
     delay(2000);
     return;
