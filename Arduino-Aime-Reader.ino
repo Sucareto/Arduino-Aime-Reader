@@ -95,8 +95,12 @@ void loop() {
     case CMD_CARD_HALT:
     case CMD_EXT_TO_NORMAL_MODE:
     case CMD_TO_UPDATER_MODE:
+      res_init();
+      break;
+
     case CMD_SEND_HEX_DATA:
       res_init();
+      res.status = STATUS_COMP_DUMMY_3RD;
       break;
 
     case STATUS_SUM_ERROR:

@@ -196,7 +196,7 @@ typedef union {
           struct {
             uint8_t RW_status[2];
             uint8_t numBlock;
-            uint8_t blockData[1][1][16];
+            uint8_t blockData[4][16];
           };
           uint8_t felica_payload[1];
         };
@@ -385,13 +385,12 @@ void nfc_felica_through() {
       break;
     case FelicaReadWithoutEncryptData:
       {
-        uint16_t serviceCodeList[1] = { (uint16_t)(req.serviceCodeList[1] << 8 | req.serviceCodeList[0]) };
+        uint16_t serviceCodeList = req.serviceCodeList[1] << 8 | req.serviceCodeList[0];
+        uint16_t blockList[4];
         for (uint8_t i = 0; i < req.numBlock; i++) {
-          uint16_t blockList[1] = { (uint16_t)(req.blockList[i][0] << 8 | req.blockList[i][1]) };
-          if (nfc.felica_ReadWithoutEncryption(1, serviceCodeList, 1, blockList, res.blockData[i]) != 1) {
-            memset(res.blockData[i], 0, 16);  // dummy data
-          }
+          blockList[i] = (uint16_t)(req.blockList[i][0] << 8 | req.blockList[i][1]);
         }
+        nfc.felica_ReadWithoutEncryption(1, &serviceCodeList, req.numBlock, blockList, res.blockData);
         res.RW_status[0] = 0;
         res.RW_status[1] = 0;
         res.numBlock = req.numBlock;
@@ -400,7 +399,10 @@ void nfc_felica_through() {
       break;
     case FelicaWriteWithoutEncryptData:
       {
-        res_init(0x0C);  // WriteWithoutEncryption,ignore
+        uint16_t serviceCodeList = req.serviceCodeList[1] << 8 | req.serviceCodeList[0];
+        uint16_t blockList = (uint16_t)(req.blockList[0][0] << 8 | req.blockList[0][1]);
+        nfc.felica_WriteWithoutEncryption(1, &serviceCodeList, 1, &blockList, &req.blockData);
+        res_init(0x0C);
         res.RW_status[0] = 0;
         res.RW_status[1] = 0;
       }
