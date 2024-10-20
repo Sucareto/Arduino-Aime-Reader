@@ -59,12 +59,12 @@ void loop() {
       break;
 
     // MIFARE 处理
-    case CMD_MIFARE_KEY_SET_A:
+    case CMD_MIFARE_KEY_SET_A: // 设置 MIFARE keyA
       memcpy(KeyA, req.key, 6);
       res_init();
       break;
 
-    case CMD_MIFARE_KEY_SET_B:
+    case CMD_MIFARE_KEY_SET_B: // 设置 MIFARE keyB
       res_init();
       memcpy(KeyB, req.key, 6);
       break;
