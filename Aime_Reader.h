@@ -81,6 +81,7 @@ enum { // 命令标记
   CMD_TO_UPDATER_MODE = 0x60,
   CMD_SEND_HEX_DATA = 0x61,
   CMD_TO_NORMAL_MODE = 0x62,
+  CMD_FIRMWARE_UPDATE = 0x64,
   // CMD_SEND_BINDATA_INIT = 0x63,
   // CMD_SEND_BINDATA_EXEC = 0x64,
   // FeliCa
@@ -235,6 +236,7 @@ uint8_t packet_read() { // 数据包读取函数
     }
     req.bytes[++len] = r;
     if (len == req.frame_len) { // 长度正确且校验通过，则返回命令标记，否则返回 STATUS_SUM_ERROR
+      if (req.cmd == CMD_FIRMWARE_UPDATE) return CMD_FIRMWARE_UPDATE; //如果命令为0x64，则不校验checksum
       return checksum == r ? req.cmd : STATUS_SUM_ERROR;
     }
     checksum += r; // 包头后每位数据（不含转义）相加，作为校验值
@@ -353,69 +355,18 @@ void nfc_mifare_read() { // 认证成功后，读取 MIFARE 指定的 block
   }
 }
 
+// 游戏发送的0x71命令后面的包实际上是完整的与Felica卡片直接通信的包，可以转发进PN532库直接用
+// response也可以直接打包转发回游戏
 void nfc_felica_through() { // FeliCa 处理函数
-  uint16_t SystemCode;
-  if (nfc.felica_Polling(0xFFFF, 0x01, res.encap_IDm, res.poll_PMm, &SystemCode, 200) == 1) {
-    SystemCode = SystemCode >> 8 | SystemCode << 8; // 大小端数据翻转
-  } else { // 如果读取 FeliCa 失败，则跳过后续操作
-    res_init();
+  uint8_t response_length = 0;
+  req.encap_code &= 0x0F; //把0xA4处理为0x04（FELICA_CMD_REQUEST_RESPONSE）
+  if (nfc.inDataExchange(&req.encap_len, req.encap_len, &res.encap_len, response_length)) {
+    res_init(response_length);
+    //如果成功的话 res.encap_len == response_length
+  } else {
+    res_init(0);
     res.status = STATUS_CARD_ERROR;
-    return;
+    // 数据交换失败时返回STATUS_CARD_ERROR触发重传
+    // 不对数据交换失败时做特殊处理，直接返回STATUS_CARD_ERROR。可能导致部分卡片（国产手机+aicemu）读取失败。
   }
-  uint8_t code = req.encap_code;
-  res.encap_code = code + 1;
-  switch (code) {
-    case FelicaPolling: // 作用未知，根据串口数据猜测
-      {
-        res_init(0x14);
-        res.poll_systemCode[0] = SystemCode;
-        res.poll_systemCode[1] = SystemCode >> 8;
-      }
-      break;
-    case FelicaReqSysCode: // 作用未知，根据串口数据猜测
-      {
-        res_init(0x0D);
-        res.felica_payload[0] = 0x01;
-        res.felica_payload[1] = SystemCode;
-        res.felica_payload[2] = SystemCode >> 8;
-      }
-      break;
-    case FelicaActive2: // 作用未知，根据串口数据猜测
-      {
-        res_init(0x0B);
-        res.felica_payload[0] = 0x00;
-      }
-      break;
-    case FelicaReadWithoutEncryptData:
-      {
-        uint16_t serviceCodeList = req.serviceCodeList[1] << 8 | req.serviceCodeList[0];
-        uint16_t blockList[4];
-        for (uint8_t i = 0; i < req.numBlock; i++) { // 大小端数据翻转
-          blockList[i] = (uint16_t)(req.blockList[i][0] << 8 | req.blockList[i][1]);
-        }
-        // 读取数据
-        nfc.felica_ReadWithoutEncryption(1, &serviceCodeList, req.numBlock, blockList, res.blockData);
-        res.RW_status[0] = 0;
-        res.RW_status[1] = 0;
-        res.numBlock = req.numBlock;
-        res_init(0x0D + req.numBlock * 16);
-      }
-      break;
-    case FelicaWriteWithoutEncryptData:
-      {
-        // 大小端数据翻转
-        uint16_t serviceCodeList = req.serviceCodeList[1] << 8 | req.serviceCodeList[0];
-        uint16_t blockList = (uint16_t)(req.blockList[0][0] << 8 | req.blockList[0][1]);
-        // 写入数据
-        nfc.felica_WriteWithoutEncryption(1, &serviceCodeList, 1, &blockList, &req.blockData);
-        res_init(0x0C);
-        res.RW_status[0] = 0;
-        res.RW_status[1] = 0;
-      }
-      break;
-    default: // 对于其他未知的数据默认处理方式，未确认效果
-      res_init();
-      res.status = STATUS_INVALID_COMMAND;
-  }
-  res.encap_len = res.payload_len;
 }

@@ -103,15 +103,18 @@ void loop() {
     case CMD_CARD_SELECT:
     case CMD_CARD_HALT:
     case CMD_EXT_TO_NORMAL_MODE:
-    case CMD_TO_UPDATER_MODE: // 作用未知，根据串口数据猜测
       res_init();
+    case CMD_FIRMWARE_UPDATE:
+      res_init();
+      res.status = STATUS_FIRM_UPDATE_SUCCESS;
+      //当读卡器发送的FW版本与amdaemon要求的版本不一致时，
+      //游戏会发送0x60使读卡器进入update模式，再通过0x64再次更新，
+      //此时需要回复0x08方可再次跳过更新
       break;
-
     case CMD_SEND_HEX_DATA: // 非 TN32MSEC003S 时，可能会触发固件更新逻辑
       res_init();
       res.status = STATUS_COMP_DUMMY_3RD;
-      // 回复 STATUS_COMP_DUMMY_3RD 可以跳过更新
-      // 如果因 fw、hw 变动导致触发更新，该回复会导致更新失败，amdaemon 崩溃
+      // 读卡器HW版本是837-15286时应该回复0x10, 837-15396回复0x20
       break;
 
     case STATUS_SUM_ERROR: // 读取数据校验失败时的回复，未确认效果
