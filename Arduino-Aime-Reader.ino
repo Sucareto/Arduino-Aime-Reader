@@ -103,7 +103,9 @@ void loop() {
     case CMD_CARD_SELECT:
     case CMD_CARD_HALT:
     case CMD_EXT_TO_NORMAL_MODE:
+    case CMD_TO_UPDATER_MODE:
       res_init();
+      break;
     case CMD_FIRMWARE_UPDATE:
       res_init();
       res.status = STATUS_FIRM_UPDATE_SUCCESS;
