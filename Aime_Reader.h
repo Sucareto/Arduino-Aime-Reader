@@ -358,7 +358,7 @@ void nfc_mifare_read() { // 认证成功后，读取 MIFARE 指定的 block
 // 游戏发送的0x71命令后面的包实际上是完整的与Felica卡片直接通信的包，可以转发进PN532库直接用
 // response也可以直接打包转发回游戏
 void nfc_felica_through() { // FeliCa 处理函数
-  uint8_t response_length = 0;
+  uint8_t response_length = 0xFF;
   if (nfc.inDataExchange(&req.encap_len, req.encap_len, &res.encap_len, &response_length)) {
     res_init(response_length);
     //如果成功的话 res.encap_len == response_length
