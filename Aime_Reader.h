@@ -359,7 +359,6 @@ void nfc_mifare_read() { // 认证成功后，读取 MIFARE 指定的 block
 // response也可以直接打包转发回游戏
 void nfc_felica_through() { // FeliCa 处理函数
   uint8_t response_length = 0;
-  req.encap_code &= 0x0F; //把0xA4处理为0x04（FELICA_CMD_REQUEST_RESPONSE）
   if (nfc.inDataExchange(&req.encap_len, req.encap_len, &res.encap_len, &response_length)) {
     res_init(response_length);
     //如果成功的话 res.encap_len == response_length
