@@ -59,9 +59,9 @@ PN532 nfc(pn532);
 #define NUM_LEDS 8
 CRGB leds[NUM_LEDS];
 
-uint8_t KeyA[6], KeyB[6]; // 用于存储 MIFARE key
+uint8_t KeyA[6], KeyB[6];  // 用于存储 MIFARE key
 
-enum { // 命令标记
+enum {  // 命令标记
   CMD_GET_FW_VERSION = 0x30,
   CMD_GET_HW_VERSION = 0x32,
   // Card read
@@ -81,9 +81,8 @@ enum { // 命令标记
   CMD_TO_UPDATER_MODE = 0x60,
   CMD_SEND_HEX_DATA = 0x61,
   CMD_TO_NORMAL_MODE = 0x62,
-  CMD_FIRMWARE_UPDATE = 0x64,
-  // CMD_SEND_BINDATA_INIT = 0x63,
-  // CMD_SEND_BINDATA_EXEC = 0x64,
+  CMD_SEND_BINDATA_INIT = 0x63,
+  CMD_SEND_BINDATA_EXEC = 0x64,
   // FeliCa
   // CMD_FELICA_PUSH = 0x70,
   CMD_FELICA_THROUGH = 0x71,
@@ -98,7 +97,8 @@ enum { // 命令标记
   CMD_EXT_TO_NORMAL_MODE = 0xf5,
 };
 
-enum { // FeliCa 专用，在 CMD_FELICA_THROUGH 命令使用
+#ifndef PN532_FeliCa_THROUGH
+enum {  // FeliCa 专用，在 CMD_FELICA_THROUGH 命令使用
   FelicaPolling = 0x00,
   FelicaReqResponce = 0x04,
   FelicaReadWithoutEncryptData = 0x06,
@@ -106,8 +106,9 @@ enum { // FeliCa 专用，在 CMD_FELICA_THROUGH 命令使用
   FelicaReqSysCode = 0x0C,
   FelicaActive2 = 0xA4,
 };
+#endif
 
-enum { // 命令执行状态，res 数据包专用
+enum {  // 命令执行状态，res 数据包专用
   STATUS_OK = 0x00,
   STATUS_CARD_ERROR = 0x01,
   STATUS_NOT_ACCEPT = 0x02,
@@ -117,18 +118,18 @@ enum { // 命令执行状态，res 数据包专用
   STATUS_INTERNAL_ERROR = 0x06,
   STATUS_INVALID_FIRM_DATA = 0x07,
   STATUS_FIRM_UPDATE_SUCCESS = 0x08,
-  STATUS_COMP_DUMMY_2ND = 0x10,
-  STATUS_COMP_DUMMY_3RD = 0x20,
+  STATUS_COMP_DUMMY_2ND = 0x10,  // 837-15286
+  STATUS_COMP_DUMMY_3RD = 0x20,  // 837-15396
 };
 
-typedef union { // 大小为 128 bytes 的联合体，用于存储收到的请求命令数据
+typedef union {  // 大小为 128 bytes 的联合体，用于存储收到的请求命令数据
   uint8_t bytes[128];
   struct {
-    uint8_t frame_len; // 数据包长度，不包含转义符
+    uint8_t frame_len;  // 数据包长度，不包含转义符
     uint8_t addr;
-    uint8_t seq_no; // 数据包序号
-    uint8_t cmd; // 命令标记
-    uint8_t payload_len; // 后续数据长度
+    uint8_t seq_no;       // 数据包序号
+    uint8_t cmd;          // 命令标记
+    uint8_t payload_len;  // 后续数据长度
     union {
       uint8_t key[6];            // CMD_MIFARE_KEY_SET
       uint8_t color_payload[3];  // CMD_EXT_BOARD_LED_RGB
@@ -138,6 +139,9 @@ typedef union { // 大小为 128 bytes 的联合体，用于存储收到的请�
       };
       struct {  // CMD_FELICA_THROUGH
         uint8_t encap_IDm[8];
+#ifdef PN532_FeliCa_THROUGH
+        uint8_t felica_through_payload[1];  // 转发给 PN532 的命令，长度可变
+#else
         uint8_t encap_len;
         uint8_t encap_code;
         union {
@@ -156,20 +160,21 @@ typedef union { // 大小为 128 bytes 的联合体，用于存储收到的请�
           };
           uint8_t felica_payload[1];
         };
+#endif
       };
     };
   };
 } packet_request_t;
 
-typedef union {// 大小为 128 bytes 的联合体，用于存储读卡器准备回复的数据
+typedef union {  // 大小为 128 bytes 的联合体，用于存储读卡器准备回复的数据
   uint8_t bytes[128];
   struct {
-    uint8_t frame_len; // 数据包长度，不包含转义符
+    uint8_t frame_len;  // 数据包长度，不包含转义符
     uint8_t addr;
-    uint8_t seq_no; // 数据包序号，需要和请求包对应
-    uint8_t cmd;// 命令标记
-    uint8_t status; // 命令执行状态标记
-    uint8_t payload_len;// 后续数据长度
+    uint8_t seq_no;       // 数据包序号，需要和请求包对应
+    uint8_t cmd;          // 命令标记
+    uint8_t status;       // 命令执行状态标记
+    uint8_t payload_len;  // 后续数据长度
     union {
       uint8_t version[1];  // CMD_GET_FW_VERSION,CMD_GET_HW_VERSION,CMD_EXT_BOARD_INFO
       uint8_t block[16];   // CMD_MIFARE_READ
@@ -185,6 +190,9 @@ typedef union {// 大小为 128 bytes 的联合体，用于存储读卡器准备
           };
         };
       };
+#ifdef PN532_FeliCa_THROUGH
+      uint8_t felica_through_payload[1];  // 从 PN532 收到的回复，长度可变
+#else
       struct {  // CMD_FELICA_THROUGH
         uint8_t encap_len;
         uint8_t encap_code;
@@ -202,6 +210,7 @@ typedef union {// 大小为 128 bytes 的联合体，用于存储读卡器准备
           uint8_t felica_payload[1];
         };
       };
+#endif
     };
   };
 } packet_response_t;
@@ -213,52 +222,52 @@ packet_response_t res;
 uint8_t len, r, checksum;
 bool escape = false;
 
-uint8_t packet_read() { // 数据包读取函数
+uint8_t packet_read() {  // 数据包读取函数
   while (SerialDevice.available()) {
     r = SerialDevice.read();
-    if (r == 0xE0) { // 检测到包头，重置包长度
+    if (r == 0xE0) {  // 检测到包头，重置包长度
       req.frame_len = 0xFF;
       continue;
     }
-    if (req.frame_len == 0xFF) { // 设置包长度
+    if (req.frame_len == 0xFF) {  // 设置包长度
       req.frame_len = r;
       len = 0;
       checksum = r;
       continue;
     }
-    if (r == 0xD0) { // 读取到转义符，设置转义标记
+    if (r == 0xD0) {  // 读取到转义符，设置转义标记
       escape = true;
       continue;
     }
-    if (escape) { // 转义处理
+    if (escape) {  // 转义处理
       r++;
       escape = false;
     }
     req.bytes[++len] = r;
-    if (len == req.frame_len) { // 长度正确且校验通过，则返回命令标记，否则返回 STATUS_SUM_ERROR
-      if (req.cmd == CMD_FIRMWARE_UPDATE) return CMD_FIRMWARE_UPDATE; //如果命令为0x64，则不校验checksum
+    if (len == req.frame_len) {                              // 长度正确且校验通过，则返回命令标记，否则返回 STATUS_SUM_ERROR
+      if (req.cmd == CMD_SEND_BINDATA_EXEC) return req.cmd;  //如果命令为0x64，则不校验checksum
       return checksum == r ? req.cmd : STATUS_SUM_ERROR;
     }
-    checksum += r; // 包头后每位数据（不含转义）相加，作为校验值
+    checksum += r;  // 包头后每位数据（不含转义）相加，作为校验值
   }
-  return 0; // 数据包未读取完成
+  return 0;  // 数据包未读取完成
 }
 
 void packet_write() {
   uint8_t checksum = 0, len = 0;
-  if (res.cmd == 0) { // 无待发数据
+  if (res.cmd == 0) {  // 无待发数据
     return;
   }
   SerialDevice.write(0xE0);
   while (len <= res.frame_len) {
     uint8_t w;
-    if (len == res.frame_len) { // 包数据已写入完成，发送校验值
+    if (len == res.frame_len) {  // 包数据已写入完成，发送校验值
       w = checksum;
     } else {
       w = res.bytes[len];
-      checksum += w; // 包头后每位数据（不含转义）相加，作为校验值
+      checksum += w;  // 包头后每位数据（不含转义）相加，作为校验值
     }
-    if (w == 0xE0 || w == 0xD0) { // 转义符写入
+    if (w == 0xE0 || w == 0xD0) {  // 转义符写入
       SerialDevice.write(0xD0);
       SerialDevice.write(--w);
     } else {
@@ -269,51 +278,51 @@ void packet_write() {
   res.cmd = 0;
 }
 
-void res_init(uint8_t payload_len = 0) { // 通用回复生成，参数指定不含包头的数据长度
+void res_init(uint8_t payload_len = 0) {  // 通用回复生成，参数指定不含包头的数据长度
   res.frame_len = 6 + payload_len;
   res.addr = req.addr;
   res.seq_no = req.seq_no;
   res.cmd = req.cmd;
-  res.status = STATUS_OK; // 默认命令执行状态标记
+  res.status = STATUS_OK;  // 默认命令执行状态标记
   res.payload_len = payload_len;
 }
 
-void sys_to_normal_mode() { // 作用未知，根据 cmd 猜测
+void sys_to_normal_mode() {  // 作用未知，根据 cmd 猜测
   res_init();
   if (nfc.getFirmwareVersion()) {
-    res.status = STATUS_INVALID_COMMAND; // 在 837-15396 和 TN32MSEC003S 串口数据确认
+    res.status = STATUS_INVALID_COMMAND;  // 在 837-15396 和 TN32MSEC003S 串口数据确认
   } else {
     res.status = STATUS_INTERNAL_ERROR;
     FastLED.showColor(0xFF0000);
   }
 }
 
-void sys_get_fw_version() { // 版本数据，通过串口数据确认，在读卡器测试界面显示
+void sys_get_fw_version() {  // 版本数据，通过串口数据确认，在读卡器测试界面显示
   res_init(sizeof(fw_version) - 1);
   memcpy(res.version, fw_version, res.payload_len);
 }
 
-void sys_get_hw_version() { // 版本数据，通过串口数据确认，在读卡器测试界面显示
+void sys_get_hw_version() {  // 版本数据，通过串口数据确认，在读卡器测试界面显示
   res_init(sizeof(hw_version) - 1);
   memcpy(res.version, hw_version, res.payload_len);
 }
 
-void sys_get_led_info() { // 版本数据，通过串口数据确认
+void sys_get_led_info() {  // 版本数据，通过串口数据确认
   res_init(sizeof(led_info) - 1);
   memcpy(res.version, led_info, res.payload_len);
 }
 
-void nfc_start_polling() { // 作用未知，根据 cmd 猜测，开始读卡
+void nfc_start_polling() {  // 作用未知，根据 cmd 猜测，开始读卡
   res_init();
   nfc.setRFField(0x00, 0x01);
 }
 
-void nfc_stop_polling() { // 作用未知，根据 cmd 猜测，停止读卡
+void nfc_stop_polling() {  // 作用未知，根据 cmd 猜测，停止读卡
   res_init();
   nfc.setRFField(0x00, 0x00);
 }
 
-void nfc_card_detect() { // 读取卡片类型
+void nfc_card_detect() {  // 读取卡片类型
   uint16_t SystemCode;
   uint8_t bufferLength;
   // MIFARE
@@ -321,7 +330,7 @@ void nfc_card_detect() { // 读取卡片类型
     res_init(res.id_len + 3);
     res.count = 1;
     res.type = 0x10;
-  // FeliCa
+    // FeliCa
   } else if (nfc.felica_Polling(0xFFFF, 0x00, res.IDm, res.PMm, &SystemCode, 200) == 1) {
     res_init(0x13);
     res.count = 1;
@@ -333,21 +342,21 @@ void nfc_card_detect() { // 读取卡片类型
   }
 }
 
-void nfc_mifare_authorize_a() { // 对 MIFARE 使用 KeyA 认证
+void nfc_mifare_authorize_a() {  // 对 MIFARE 使用 KeyA 认证
   res_init();
   if (!nfc.mifareclassic_AuthenticateBlock(req.uid, 4, req.block_no, 0, KeyA)) {
     res.status = STATUS_CARD_ERROR;
   }
 }
 
-void nfc_mifare_authorize_b() {// 对 MIFARE 使用 KeyB 认证
+void nfc_mifare_authorize_b() {  // 对 MIFARE 使用 KeyB 认证
   res_init();
   if (!nfc.mifareclassic_AuthenticateBlock(req.uid, 4, req.block_no, 1, KeyB)) {
     res.status = STATUS_CARD_ERROR;
   }
 }
 
-void nfc_mifare_read() { // 认证成功后，读取 MIFARE 指定的 block
+void nfc_mifare_read() {  // 认证成功后，读取 MIFARE 指定的 block
   res_init(0x10);
   if (!nfc.mifareclassic_ReadDataBlock(req.block_no, res.block)) {
     res_init();
@@ -355,17 +364,85 @@ void nfc_mifare_read() { // 认证成功后，读取 MIFARE 指定的 block
   }
 }
 
-// 游戏发送的0x71命令后面的包实际上是完整的与Felica卡片直接通信的包，可以转发进PN532库直接用
-// response也可以直接打包转发回游戏
-void nfc_felica_through() { // FeliCa 处理函数
+#ifndef SKIP_FeliCa_THROUGH
+void nfc_felica_through() {  // FeliCa 处理函数
+#ifdef PN532_FeliCa_THROUGH
+#pragma message "启用 PN532 FeliCa 直通"
+  // 游戏发送的 0x71 命令后面的包实际上是完整的与 FeliCa 卡片直接通信的包，可以转发进 PN532 库直接用
   uint8_t response_length = 0xFF;
-  if (nfc.inDataExchange(&req.encap_len, req.encap_len, &res.encap_len, &response_length)) {
+  if (nfc.inDataExchange(req.felica_through_payload, req.felica_through_payload[0], res.felica_through_payload, &response_length)) {
     res_init(response_length);
-    //如果成功的话 res.encap_len == response_length
   } else {
-    res_init(0);
+    res_init();
     res.status = STATUS_CARD_ERROR;
-    // 数据交换失败时返回STATUS_CARD_ERROR触发重传
-    // 不对数据交换失败时做特殊处理，直接返回STATUS_CARD_ERROR。可能导致部分卡片（国产手机+aicemu）读取失败。
+    // 数据交换失败时返回 STATUS_CARD_ERROR 触发重传
+    // 不对数据交换失败时做特殊处理，直接返回 STATUS_CARD_ERROR。可能导致部分卡片（国产手机 + aicemu）读取失败。
   }
+#else  // 旧 FeliCa 处理函数，留作参考
+  uint16_t SystemCode;
+  if (nfc.felica_Polling(0xFFFF, 0x01, res.encap_IDm, res.poll_PMm, &SystemCode, 200) == 1) {
+    SystemCode = SystemCode >> 8 | SystemCode << 8;  // 大小端数据翻转
+  } else {                                           // 如果读取 FeliCa 失败，则跳过后续操作
+    res_init();
+    res.status = STATUS_CARD_ERROR;
+    return;
+  }
+  uint8_t code = req.encap_code;
+  res.encap_code = code + 1;
+  switch (code) {
+    case FelicaPolling:  // 作用未知，根据串口数据猜测
+      {
+        res_init(0x14);
+        res.poll_systemCode[0] = SystemCode;
+        res.poll_systemCode[1] = SystemCode >> 8;
+      }
+      break;
+    case FelicaReqSysCode:  // 作用未知，根据串口数据猜测
+      {
+        res_init(0x0D);
+        res.felica_payload[0] = 0x01;
+        res.felica_payload[1] = SystemCode;
+        res.felica_payload[2] = SystemCode >> 8;
+      }
+      break;
+    case FelicaActive2:  // 作用未知，根据串口数据猜测
+      {
+        res_init(0x0B);
+        res.felica_payload[0] = 0x00;
+      }
+      break;
+    case FelicaReadWithoutEncryptData:
+      {
+        uint16_t serviceCodeList = req.serviceCodeList[1] << 8 | req.serviceCodeList[0];
+        uint16_t blockList[4];
+        for (uint8_t i = 0; i < req.numBlock; i++) {  // 大小端数据翻转
+          blockList[i] = (uint16_t)(req.blockList[i][0] << 8 | req.blockList[i][1]);
+        }
+        // 读取数据
+        nfc.felica_ReadWithoutEncryption(1, &serviceCodeList, req.numBlock, blockList, res.blockData);
+        res.RW_status[0] = 0;
+        res.RW_status[1] = 0;
+        res.numBlock = req.numBlock;
+        res_init(0x0D + req.numBlock * 16);
+      }
+      break;
+    case FelicaWriteWithoutEncryptData:
+      {
+        // 大小端数据翻转
+        uint16_t serviceCodeList = req.serviceCodeList[1] << 8 | req.serviceCodeList[0];
+        uint16_t blockList = (uint16_t)(req.blockList[0][0] << 8 | req.blockList[0][1]);
+        // 写入数据
+        nfc.felica_WriteWithoutEncryption(1, &serviceCodeList, 1, &blockList, &req.blockData);
+        res_init(0x0C);
+        res.RW_status[0] = 0;
+        res.RW_status[1] = 0;
+      }
+      break;
+    default:  // 对于其他未知的数据默认处理方式，未确认效果
+      res_init();
+      res.status = STATUS_INVALID_COMMAND;
+  }
+  res.encap_len = res.payload_len;
+#endif
 }
+#endif

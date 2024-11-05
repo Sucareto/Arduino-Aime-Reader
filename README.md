@@ -49,16 +49,16 @@
 
 ### 已知问题
 - 默认未启用 FeliCa 读写功能，仅在 `CMD_CARD_DETECT` 时读取 IDm 和 PMm，该设置可以通过 `SKIP_FeliCa_THROUGH` 控制
+- 启用 FeliCa 读写功能后，默认启用 `PN532_FeliCa_THROUGH`，FeliCa 操作命令直接转发给 PN532 处理，如果需要控制读写过程，可以禁用该定义，然后修改实现函数
 - 如果启用 FeliCa 读写功能，某些游戏可能不支持所有 FeliCa 卡种类，和官方读卡器行为一致
 - 因为 PN532 库支持的问题，未实现多卡同时读取，只会读到最先识别的卡片；刷数据不正确的 MIFARE 卡片（如交通卡、模拟卡）会导致游戏状态异常
 - 对于未适配的命令，默认回复 `STATUS_INVALID_COMMAND`，可能会导致游戏认为读卡器不可用
-- [此处修改](https://github.com/Sucareto/Arduino-Aime-Reader/commit/ebb2565ce4c43e8de275790f52bebee381d0bca7#diff-abc09b3d07eff9d03039f4f22ac9ac0747790237d3d00258e38644dbf13f9bbbR103) 会影响 amdaemon 对固件更新的操作，参考[此处说明](https://github.com/Sucareto/Arduino-Aime-Reader/blob/b16c63772b6d94ad9fca2c82bd89f0e900ed03d6/Arduino-Aime-Reader.ino#L114)
 
 
 ### 版本更新情况
 - [最新](https://github.com/Sucareto/Arduino-Aime-Reader/tree/main)
 
-通过 [pull/19](https://github.com/Sucareto/Arduino-Aime-Reader/pull/19) 实现了 FeliCa 的正确读写；  
+通过 [QHPaeek/pull/19](https://github.com/Sucareto/Arduino-Aime-Reader/pull/19) 和 [nerimoe/pull/21](https://github.com/Sucareto/Arduino-Aime-Reader/pull/21) 实现了 FeliCa 的正确读写、固件更新处理。  
 因未持有官方读卡器和框体等环境，无法进行更多测试，如没有 bug 或者新文档，将不会再更新。
 
 - [v2.0](https://github.com/Sucareto/Arduino-Aime-Reader/commits/v2.0)
@@ -68,7 +68,7 @@
 - [v1.0](https://github.com/Sucareto/Arduino-Aime-Reader/commits/v1.0)
 
 参考 [segatools](https://github.com/djhackersdev/segatools/blob/master/board/sg-nfc-cmd.h) 编写了基本实现；  
-分析了官方读卡器串口数据，通过猜测数据结构完善了大部分功能。
+分析了官方读卡器串口数据，通过猜测数据结构完成了大部分功能。
 
 
 ### 参考
